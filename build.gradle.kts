@@ -27,7 +27,7 @@ tasks.withType<JavaCompile> {
 
 application {
     mainModule.set("io.github.orizynpx.nodepad")
-    mainClass.set("io.github.orizynpx.nodepad.HelloApplication")
+    mainClass.set("io.github.orizynpx.nodepad.app.Launcher")
 }
 
 javafx {
@@ -39,16 +39,14 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter-api:${junitVersion}")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitVersion}")
     implementation("org.xerial:sqlite-jdbc:3.45.1.0")
+    implementation("org.fxmisc.richtext:richtextfx:0.11.0")
+    // JSON Parsing (This is what you are missing)
+    implementation("com.google.code.gson:gson:2.10.1")
+
+    // Network
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
 }
 
 tasks.withType<Test> {
     useJUnitPlatform()
-}
-
-jlink {
-    imageZip.set(layout.buildDirectory.file("/distributions/app-${javafx.platform.classifier}.zip"))
-    options.set(listOf("--strip-debug", "--compress", "2", "--no-header-files", "--no-man-pages"))
-    launcher {
-        name = "app"
-    }
 }

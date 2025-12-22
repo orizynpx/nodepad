@@ -1,0 +1,5 @@
+.keyword-id { -fx-fill: #00ffff; -fx-font-weight: bold; } /* Neon Blue */
+.keyword-req { -fx-fill: #ff00ff; } /* Neon Pink */
+.keyword-isbn { -fx-fill: #ffd700; } /* Gold */
+.keyword-done { -fx-fill: #00ff99; -fx-font-weight: bold; } /* Green */
+.comment { -fx-fill: #777; }

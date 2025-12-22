@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox spacing="20" style="-fx-background-color: #1e1e1e; -fx-padding: 40;"
+      xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="io.github.orizynpx.nodepad.controller.DashboardController">
+
+    <Label text="DASHBOARD" style="-fx-text-fill: white; -fx-font-size: 32; -fx-font-weight: bold;"/>
+
+    <HBox spacing="15">
+        <Button text="New Project" onAction="#handleNewFile"
+                style="-fx-background-color: #00ffff; -fx-text-fill: black; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 10 20;"/>
+        <Button text="Open File..." onAction="#handleOpenFile"
+                style="-fx-background-color: #333; -fx-text-fill: white; -fx-border-color: #555; -fx-cursor: hand; -fx-padding: 10 20;"/>
+    </HBox>
+
+    <Label text="Recent Files" style="-fx-text-fill: #aaa; -fx-font-size: 14; -fx-padding: 20 0 0 0;"/>
+
+    <!-- List of recent files -->
+    <ListView fx:id="recentFilesList" VBox.vgrow="ALWAYS"
+              style="-fx-background-color: transparent; -fx-control-inner-background: #1e1e1e;"/>
+
+</VBox>

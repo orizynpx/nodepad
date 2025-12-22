@@ -1,57 +1,113 @@
 package io.github.orizynpx.nodepad.service;
 
-import io.github.orizynpx.nodepad.model.TaskNode;
+import io.github.orizynpx.nodepad.model.Edge;
+import io.github.orizynpx.nodepad.model.GraphModel;
+import io.github.orizynpx.nodepad.model.GraphNode;
+import io.github.orizynpx.nodepad.model.GraphNode.Status;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class ParserService {
-    private static final Pattern TASK_PATTERN = Pattern.compile("- \\[(x| )\\] (.*?) @id:([\\w_]+)");
-    // Matches: @requires(ID,ID)
-    private static final Pattern REQ_PATTERN = Pattern.compile("@requires\\((.*?)\\)");
 
-    public List<TaskNode> parse(String text) {
-        if (text == null) return new ArrayList<>();
+    private static final Pattern ID_PATTERN = Pattern.compile("@id\\(([^)]+)\\)");
+    private static final Pattern REQ_PATTERN = Pattern.compile("@(?:req|requires)\\(([^)]+)\\)");
+    private static final Pattern ISBN_PATTERN = Pattern.compile("@isbn\\(([^)]+)\\)");
+    private static final Pattern URL_PATTERN = Pattern.compile("@url\\(([^)]+)\\)");
+    private static final String DONE_TAG = "@done";
 
-        Map<String, TaskNode> nodeMap = new HashMap<>();
-        List<TaskNode> nodes = new ArrayList<>();
-        String[] lines = text.split("\n");
+    public GraphModel parse(String text) {
+        GraphModel graph = new GraphModel();
+        if (text == null || text.isBlank()) return graph;
 
-        // 1. Create Nodes
+        String[] lines = text.split("\\R");
+        Map<String, GraphNode> nodeMap = new LinkedHashMap<>();
+
+        // --- PASS 1: NODES (Capture Order) ---
+        GraphNode lastNode = null;
+        int lineCounter = 0;
+
         for (String line : lines) {
-            Matcher m = TASK_PATTERN.matcher(line);
-            if (m.find()) {
-                boolean isComplete = "x".equals(m.group(1));
-                String name = m.group(2).trim();
-                String id = m.group(3);
+            Matcher idMatcher = ID_PATTERN.matcher(line);
+            if (idMatcher.find()) {
+                String id = idMatcher.group(1).trim();
+                GraphNode node = new GraphNode(id);
+                node.setIndex(lineCounter++); // CRITICAL: Save order
 
-                TaskNode node = new TaskNode(id, name, isComplete);
-
-                Matcher reqMatcher = REQ_PATTERN.matcher(line);
-                if (reqMatcher.find()) {
-                    String[] reqs = reqMatcher.group(1).split(",");
-                    for (String r : reqs) node.addRequirement(r.trim());
-                }
+                String cleanLabel = line.replaceAll("@\\w+\\([^)]*\\)", "")
+                        .replace(DONE_TAG, "").replaceFirst("^\\s*[-*+]\\s+", "").trim();
+                if (!cleanLabel.isEmpty()) node.setLabel(cleanLabel);
 
                 nodeMap.put(id, node);
-                nodes.add(node);
+                lastNode = node;
+            } else if (lastNode != null && !line.trim().isEmpty() && !line.trim().startsWith("-")) {
+                // Description handling
+                String desc = line.trim();
+                lastNode.setDescription(lastNode.getDescription().isEmpty() ? desc : lastNode.getDescription() + "\n" + desc);
             }
         }
 
-        // 2. Link Nodes
-        for (TaskNode node : nodes) {
-            for (String reqId : node.getRequiredIds()) {
-                TaskNode parent = nodeMap.get(reqId);
-                if (parent != null) {
-                    node.addParent(parent);
-                    parent.addChild(node);
+        // --- PASS 2: EDGES ---
+        List<Edge> edges = new ArrayList<>();
+        // Helper to prevent duplicate edges
+        Set<String> existingEdges = new HashSet<>();
+
+        for (String line : lines) {
+            Matcher idMatcher = ID_PATTERN.matcher(line);
+            if (idMatcher.find()) {
+                String currentId = idMatcher.group(1).trim();
+                GraphNode currentNode = nodeMap.get(currentId);
+
+                // Metadata
+                Matcher isbn = ISBN_PATTERN.matcher(line);
+                if (isbn.find()) currentNode.setIsbn(isbn.group(1).trim());
+                Matcher url = URL_PATTERN.matcher(line);
+                if (url.find()) currentNode.setUrl(url.group(1).trim());
+                if (line.contains(DONE_TAG)) currentNode.setStatus(Status.DONE);
+
+                // Dependencies: @req(A) means A -> Current
+                Matcher req = REQ_PATTERN.matcher(line);
+                while (req.find()) {
+                    String[] requirements = req.group(1).split(",");
+                    for (String reqId : requirements) {
+                        reqId = reqId.trim();
+                        if (nodeMap.containsKey(reqId)) {
+                            // Edge: Requirement (Source) -> Current Task (Target)
+                            String key = reqId + "->" + currentId;
+                            if (!existingEdges.contains(key)) {
+                                edges.add(new Edge(reqId, currentId));
+                                existingEdges.add(key);
+                            }
+                        }
+                    }
                 }
             }
         }
-        return nodes;
+
+        // Status Logic
+        calculateStatuses(nodeMap, edges);
+
+        graph.setNodes(new ArrayList<>(nodeMap.values()));
+        graph.setEdges(edges);
+        return graph;
+    }
+
+    private void calculateStatuses(Map<String, GraphNode> nodeMap, List<Edge> edges) {
+        Map<String, List<String>> incoming = new HashMap<>();
+        for (Edge edge : edges) {
+            incoming.computeIfAbsent(edge.getTargetId(), k -> new ArrayList<>()).add(edge.getSourceId());
+        }
+
+        for (GraphNode node : nodeMap.values()) {
+            if (node.getStatus() == Status.DONE) continue;
+            List<String> deps = incoming.getOrDefault(node.getId(), Collections.emptyList());
+            if (deps.isEmpty()) {
+                node.setStatus(Status.UNLOCKED);
+            } else {
+                boolean allDone = deps.stream().allMatch(id -> nodeMap.get(id).getStatus() == Status.DONE);
+                node.setStatus(allDone ? Status.UNLOCKED : Status.LOCKED);
+            }
+        }
     }
 }
