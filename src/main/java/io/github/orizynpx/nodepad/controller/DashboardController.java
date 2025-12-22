@@ -67,7 +67,7 @@ public class DashboardController {
     @FXML
     private void handleOpenFile() {
         FileChooser fileChooser = new FileChooser();
-        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Nodepad Files", "*.npad", "*.txt"));
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Text Files", "*.txt"));
         File file = fileChooser.showOpenDialog(recentFilesList.getScene().getWindow());
 
         if (file != null) {

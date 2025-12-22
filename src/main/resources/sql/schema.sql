@@ -27,3 +27,12 @@ CREATE TABLE IF NOT EXISTS api_cache
     fetched_at
     INTEGER
 );
+
+CREATE TABLE IF NOT EXISTS link_cache
+(
+    url TEXT PRIMARY KEY,
+    title TEXT,
+    description TEXT,
+    image_url TEXT,
+    fetched_at INTEGER
+);

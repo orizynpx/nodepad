@@ -1,6 +1,7 @@
 package io.github.orizynpx.nodepad.app;
 
 import io.github.orizynpx.nodepad.dao.*;
+import io.github.orizynpx.nodepad.service.LinkPreviewService;
 import io.github.orizynpx.nodepad.service.OpenLibraryService;
 import io.github.orizynpx.nodepad.service.ParserService;
 import io.github.orizynpx.nodepad.dao.FileContentRepository;
@@ -13,11 +14,13 @@ public class ServiceRegistry {
     private final FileRepository fileRepository;
     private final BookRepository bookRepository;
     private final ContentRepository contentRepository;
+    private final LinkRepository linkRepository;
 
     // SERVICES
     private final ParserService parserService;
     private final OpenLibraryService openLibraryService;
     private final TaskMutatorService taskMutatorService;
+    private final LinkPreviewService linkPreviewService;
 
     private ServiceRegistry() {
         // CONCRETE IMPLEMENTATIONS (The only place using 'new')
@@ -29,6 +32,8 @@ public class ServiceRegistry {
         this.parserService = new ParserService();
         this.openLibraryService = new OpenLibraryService(this.bookRepository);
         this.taskMutatorService = new TaskMutatorService();
+        this.linkRepository = new SqliteLinkDao(connectionFactory);
+        this.linkPreviewService = new LinkPreviewService(this.linkRepository);
     }
 
     public static ServiceRegistry getInstance() {
@@ -57,5 +62,9 @@ public class ServiceRegistry {
 
     public OpenLibraryService getOpenLibraryService() {
         return openLibraryService;
+    }
+
+    public LinkPreviewService getLinkPreviewService() {
+        return linkPreviewService;
     }
 }

@@ -49,9 +49,6 @@ public class MainController {
         loadView("inventory");
     }
 
-    /**
-     * Loads the workshop and populates it with file content.
-     */
     public void openWorkshop(File file) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/workshop.fxml"));
@@ -60,7 +57,10 @@ public class MainController {
             WorkshopController controller = loader.getController();
 
             if (file != null) {
-                // Load file content
+                // 1. Pass the FILE object so Save works later
+                controller.setCurrentFile(file);
+
+                // 2. Load the CONTENT
                 try {
                     String content = ServiceRegistry.getInstance().getContentRepository().loadContent(file);
                     controller.loadContent(content);
@@ -68,9 +68,8 @@ public class MainController {
                     System.err.println("Error reading file: " + e.getMessage());
                 }
             } else {
-                // Load Default/New Template
-                // WorkshopController handles its own default in initialize,
-                // but we can force a blank one here if needed.
+                // New Project -> Current file is null
+                controller.setCurrentFile(null);
             }
 
             contentArea.getChildren().setAll(view);

@@ -1,16 +1,13 @@
 package io.github.orizynpx.nodepad.view;
 
-import io.github.orizynpx.nodepad.model.Edge;
-import io.github.orizynpx.nodepad.model.GraphModel;
-import io.github.orizynpx.nodepad.model.TaskNode;
-import io.github.orizynpx.nodepad.model.NodeStatus;
+import io.github.orizynpx.nodepad.app.ServiceRegistry;
+import io.github.orizynpx.nodepad.model.*;
 import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
 import javafx.scene.Cursor;
 import javafx.scene.Group;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -21,10 +18,12 @@ import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 
-import java.awt.Desktop;
-import java.net.URI;
 import java.util.*;
 import java.util.function.Consumer;
+
+import io.github.orizynpx.nodepad.model.LinkMetadata;
+import javafx.scene.image.ImageView;
+import javafx.scene.image.Image;
 
 public class GraphRenderer extends Pane {
 
@@ -295,6 +294,43 @@ public class GraphRenderer extends Pane {
             overlay.getChildren().add(desc);
         }
 
+        if (node.getIsbn() != null) {
+            Label loading = new Label("Fetching Book Data...");
+            loading.setStyle("-fx-text-fill: #ffd700; -fx-font-style: italic; -fx-font-size: 10px;");
+            overlay.getChildren().add(loading);
+
+            // Async Fetch via ServiceRegistry
+            ServiceRegistry.getInstance().getOpenLibraryService()
+                    .fetchBookInfo(node.getIsbn())
+                    .thenAccept(book -> javafx.application.Platform.runLater(() -> {
+                        overlay.getChildren().remove(loading);
+                        if (book != null) {
+                            overlay.getChildren().add(createBookEmbed(book));
+                        } else {
+                            Label err = new Label("Book not found.");
+                            err.setStyle("-fx-text-fill: #ff5555; -fx-font-size: 10px;");
+                            overlay.getChildren().add(err);
+                        }
+                    }));
+        }
+
+        if (node.getUrl() != null) {
+            // Placeholder
+            Label loading = new Label("Loading Preview...");
+            loading.setStyle("-fx-text-fill: #aaa; -fx-font-style: italic;");
+            overlay.getChildren().add(loading);
+
+            // Async Fetch
+            ServiceRegistry.getInstance().getLinkPreviewService()
+                    .fetchPreview(node.getUrl())
+                    .thenAccept(meta -> javafx.application.Platform.runLater(() -> {
+                        overlay.getChildren().remove(loading);
+                        if (meta != null) {
+                            overlay.getChildren().add(createLinkEmbed(meta));
+                        }
+                    }));
+        }
+
         Button btn = new Button();
         btn.setMaxWidth(Double.MAX_VALUE);
 
@@ -322,6 +358,63 @@ public class GraphRenderer extends Pane {
         overlay.setLayoutY(y - 20);
         this.activeOverlay = overlay;
         contentGroup.getChildren().add(overlay);
+
+
+    }
+
+    private VBox createBookEmbed(BookMetadata book) {
+        VBox embed = new VBox(5);
+        embed.setStyle("-fx-border-color: #ffd700; -fx-border-width: 0 0 0 3; -fx-padding: 0 0 0 8; -fx-background-color: rgba(255, 215, 0, 0.1);");
+
+        Label lbl = new Label("LIBRARY REFERENCE");
+        lbl.setStyle("-fx-text-fill: #ffd700; -fx-font-size: 8px; -fx-font-weight: bold;");
+
+        Label title = new Label(book.getTitle());
+        title.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 11px;");
+        title.setWrapText(true);
+
+        Label isbn = new Label("ISBN: " + book.getIsbn());
+        isbn.setStyle("-fx-text-fill: #aaaaaa; -fx-font-size: 9px; -fx-font-family: 'Monospace';");
+
+        embed.getChildren().addAll(lbl, title, isbn);
+
+        if (book.getImageUrl() != null && !book.getImageUrl().isEmpty()) {
+            try {
+                ImageView img = new ImageView(new Image(book.getImageUrl(), true)); // true = background loading
+                img.setFitHeight(120);
+                img.setFitWidth(80); // Portrait aspect ratio for books
+                img.setPreserveRatio(true);
+                embed.getChildren().add(img);
+            } catch (Exception ignored) {
+            }
+        }
+        return embed;
+    }
+
+    private VBox createLinkEmbed(LinkMetadata meta) {
+        VBox embed = new VBox(5);
+        embed.setStyle("-fx-border-color: #00ffff; -fx-border-width: 0 0 0 3; -fx-padding: 0 0 0 8; -fx-background-color: rgba(0,0,0,0.2);");
+
+        Label title = new Label(meta.getTitle());
+        title.setStyle("-fx-text-fill: #00aaff; -fx-font-weight: bold; -fx-font-size: 11px;");
+
+        Label desc = new Label(meta.getDescription());
+        desc.setStyle("-fx-text-fill: #aaaaaa; -fx-font-size: 10px;");
+        desc.setWrapText(true);
+        desc.setMaxWidth(250);
+
+        embed.getChildren().addAll(title, desc);
+
+        if (!meta.getImageUrl().isEmpty()) {
+            try {
+                ImageView img = new ImageView(new Image(meta.getImageUrl(), true));
+                img.setFitHeight(100);
+                img.setFitWidth(200);
+                img.setPreserveRatio(true);
+                embed.getChildren().add(img);
+            } catch (Exception ignored) {}
+        }
+        return embed;
     }
 
     private void closeOverlay() {

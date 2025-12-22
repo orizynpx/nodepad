@@ -1,6 +1,8 @@
 package io.github.orizynpx.nodepad.controller;
 
 import io.github.orizynpx.nodepad.app.ServiceRegistry;
+import io.github.orizynpx.nodepad.dao.ContentRepository;
+import io.github.orizynpx.nodepad.dao.FileRepository;
 import io.github.orizynpx.nodepad.model.Edge;
 import io.github.orizynpx.nodepad.model.GraphModel;
 import io.github.orizynpx.nodepad.service.ParserService;
@@ -9,10 +11,16 @@ import io.github.orizynpx.nodepad.view.EditorFactory;
 import io.github.orizynpx.nodepad.view.GraphRenderer;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.control.Button;
 import javafx.scene.layout.StackPane;
+import javafx.stage.FileChooser;
 import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.CodeArea;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.*;
 
 public class WorkshopController {
@@ -27,11 +35,21 @@ public class WorkshopController {
 
     private final ParserService parserService;
     private final TaskMutatorService taskMutatorService;
+    private final ContentRepository contentRepository;
+    private final FileRepository fileRepository;
+
     private GraphModel currentModel;
+    private File currentFile;
 
     public WorkshopController() {
         this.parserService = ServiceRegistry.getInstance().getParserService();
         this.taskMutatorService = ServiceRegistry.getInstance().getTaskMutatorService();
+        this.contentRepository = ServiceRegistry.getInstance().getContentRepository();
+        this.fileRepository = ServiceRegistry.getInstance().getFileRepository();
+    }
+
+    public void setCurrentFile(File file) {
+        this.currentFile = file;
     }
 
     @FXML
@@ -40,6 +58,15 @@ public class WorkshopController {
         codeArea = EditorFactory.createCodeArea();
         codeArea.setWrapText(true);
         editorContainer.getChildren().add(new VirtualizedScrollPane<>(codeArea));
+
+        Button saveBtn = new Button("SAVE");
+        saveBtn.setStyle("-fx-background-color: #00ffff; -fx-text-fill: black; -fx-font-weight: bold; -fx-cursor: hand;");
+        saveBtn.setOnAction(e -> save());
+
+        // Position it top-right of the editor
+        StackPane.setAlignment(saveBtn, Pos.TOP_RIGHT);
+        StackPane.setMargin(saveBtn, new Insets(10));
+        editorContainer.getChildren().add(saveBtn);
 
         // 2. Renderer
         renderer = new GraphRenderer();
@@ -81,50 +108,56 @@ public class WorkshopController {
         });
     }
 
+    private void save() {
+        String content = codeArea.getText();
+
+        if (currentFile == null) {
+            saveAs(); // If new project, ask where to save
+        } else {
+            try {
+                // 1. Write to disk
+                contentRepository.saveContent(currentFile, content);
+                // 2. Update DB (Recent Files)
+                fileRepository.addOrUpdateFile(currentFile.getAbsolutePath());
+                System.out.println("File saved: " + currentFile.getAbsolutePath());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private void saveAs() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Save Project");
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Text Files", "*.txt"));
+
+        File file = fileChooser.showSaveDialog(editorContainer.getScene().getWindow());
+        if (file != null) {
+            // Force .txt extension if missing
+            if (!file.getName().endsWith(".txt")) {
+                file = new File(file.getAbsolutePath() + ".txt");
+            }
+
+            this.currentFile = file;
+            save(); // Execute save now that we have a file
+        }
+    }
+
     private void updateGraph(String text) {
-        if (text == null) return;
+        if (text == null) {
+            return;
+        }
+
         currentModel = parserService.parse(text); // Store model for logic
         renderer.render(currentModel);
     }
 
-    /**
-     * Toggles task status.
-     * If marking INCOMPLETE, it cascades to children to lock them.
-     */
     private void toggleTask(String nodeId) {
         String currentText = codeArea.getText();
-
-        // LOGIC MOVED TO SERVICE (Satisfies Source 10 & 18)
         String newText = taskMutatorService.toggleTaskStatus(currentText, currentModel, nodeId);
 
         if (!newText.equals(currentText)) {
             codeArea.replaceText(newText);
-        }
-    }
-
-    /**
-     * BFS to find all nodes downstream from the root.
-     */
-    private void collectDescendants(String rootId, Set<String> results) {
-        // Build Adjacency List (Source -> Targets)
-        Map<String, List<String>> adj = new HashMap<>();
-        for (Edge e : currentModel.getEdges()) {
-            adj.computeIfAbsent(e.getSourceId(), k -> new ArrayList<>()).add(e.getTargetId());
-        }
-
-        Queue<String> queue = new LinkedList<>();
-        queue.add(rootId);
-
-        while (!queue.isEmpty()) {
-            String curr = queue.poll();
-            if (adj.containsKey(curr)) {
-                for (String child : adj.get(curr)) {
-                    if (!results.contains(child)) {
-                        results.add(child);
-                        queue.add(child);
-                    }
-                }
-            }
         }
     }
 }
