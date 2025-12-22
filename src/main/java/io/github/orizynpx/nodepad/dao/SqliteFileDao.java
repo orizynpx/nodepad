@@ -6,12 +6,17 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class FileDao {
+public class SqliteFileDao implements FileRepository {
+    private final ConnectionFactory connectionFactory;
+
+    public SqliteFileDao(ConnectionFactory connectionFactory) {
+        this.connectionFactory = connectionFactory;
+    }
 
     public void addOrUpdateFile(String filePath) {
         String sql = "INSERT OR REPLACE INTO recent_files(file_path, last_opened, is_pinned) VALUES(?, ?, COALESCE((SELECT is_pinned FROM recent_files WHERE file_path=?), 0))";
 
-        try (Connection conn = DatabaseManager.connect();
+        try (Connection conn = connectionFactory.connect();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             pstmt.setString(1, filePath);
@@ -28,7 +33,7 @@ public class FileDao {
         List<FileRecord> files = new ArrayList<>();
         String sql = "SELECT * FROM recent_files ORDER BY last_opened DESC LIMIT 10";
 
-        try (Connection conn = DatabaseManager.connect();
+        try (Connection conn = connectionFactory.connect();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
 

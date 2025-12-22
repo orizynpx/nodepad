@@ -1,5 +1,6 @@
 package io.github.orizynpx.nodepad.controller;
 
+import io.github.orizynpx.nodepad.app.ServiceRegistry;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -8,7 +9,6 @@ import javafx.scene.layout.StackPane;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
 
 public class MainController {
 
@@ -23,7 +23,7 @@ public class MainController {
     }
 
     @FXML
-    private void showDashboard() {
+    public void showDashboard() {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/dashboard.fxml"));
             Parent view = loader.load();
@@ -39,13 +39,13 @@ public class MainController {
     }
 
     @FXML
-    private void showWorkshop() {
+    public void showWorkshop() {
         // Default button click (resume current or new)
-        openWorkshop(null);
+        loadView("workshop");
     }
 
     @FXML
-    private void showInventory() {
+    public void showInventory() {
         loadView("inventory");
     }
 
@@ -62,8 +62,8 @@ public class MainController {
             if (file != null) {
                 // Load file content
                 try {
-                    String content = Files.readString(file.toPath());
-                    controller.loadContent(content); // We need to add this method next
+                    String content = ServiceRegistry.getInstance().getContentRepository().loadContent(file);
+                    controller.loadContent(content);
                 } catch (IOException e) {
                     System.err.println("Error reading file: " + e.getMessage());
                 }

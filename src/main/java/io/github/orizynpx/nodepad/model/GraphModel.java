@@ -4,7 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class GraphModel {
-    private List<GraphNode> nodes;
+    // Now holds TaskNode (which extends BaseNode)
+    private List<TaskNode> nodes;
     private List<Edge> edges;
 
     public GraphModel() {
@@ -12,9 +13,19 @@ public class GraphModel {
         this.edges = new ArrayList<>();
     }
 
-    public List<GraphNode> getNodes() { return nodes; }
-    public void setNodes(List<GraphNode> nodes) { this.nodes = nodes; }
+    public List<TaskNode> getNodes() {
+        return nodes;
+    }
 
-    public List<Edge> getEdges() { return edges; }
-    public void setEdges(List<Edge> edges) { this.edges = edges; }
+    public void setNodes(List<TaskNode> nodes) {
+        this.nodes = nodes;
+    }
+
+    public List<Edge> getEdges() {
+        return edges;
+    }
+
+    public void setEdges(List<Edge> edges) {
+        this.edges = edges;
+    }
 }

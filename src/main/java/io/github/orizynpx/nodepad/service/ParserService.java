@@ -2,8 +2,8 @@ package io.github.orizynpx.nodepad.service;
 
 import io.github.orizynpx.nodepad.model.Edge;
 import io.github.orizynpx.nodepad.model.GraphModel;
-import io.github.orizynpx.nodepad.model.GraphNode;
-import io.github.orizynpx.nodepad.model.GraphNode.Status;
+import io.github.orizynpx.nodepad.model.TaskNode; // Updated to TaskNode
+import io.github.orizynpx.nodepad.model.NodeStatus;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -22,18 +22,21 @@ public class ParserService {
         if (text == null || text.isBlank()) return graph;
 
         String[] lines = text.split("\\R");
-        Map<String, GraphNode> nodeMap = new LinkedHashMap<>();
+        // UPDATED: Map stores TaskNode
+        Map<String, TaskNode> nodeMap = new LinkedHashMap<>();
 
         // --- PASS 1: NODES (Capture Order) ---
-        GraphNode lastNode = null;
+        TaskNode lastNode = null;
         int lineCounter = 0;
 
         for (String line : lines) {
             Matcher idMatcher = ID_PATTERN.matcher(line);
             if (idMatcher.find()) {
                 String id = idMatcher.group(1).trim();
-                GraphNode node = new GraphNode(id);
-                node.setIndex(lineCounter++); // CRITICAL: Save order
+
+                // UPDATED: Instantiate TaskNode
+                TaskNode node = new TaskNode(id);
+                node.setIndex(lineCounter++);
 
                 String cleanLabel = line.replaceAll("@\\w+\\([^)]*\\)", "")
                         .replace(DONE_TAG, "").replaceFirst("^\\s*[-*+]\\s+", "").trim();
@@ -42,7 +45,6 @@ public class ParserService {
                 nodeMap.put(id, node);
                 lastNode = node;
             } else if (lastNode != null && !line.trim().isEmpty() && !line.trim().startsWith("-")) {
-                // Description handling
                 String desc = line.trim();
                 lastNode.setDescription(lastNode.getDescription().isEmpty() ? desc : lastNode.getDescription() + "\n" + desc);
             }
@@ -50,30 +52,28 @@ public class ParserService {
 
         // --- PASS 2: EDGES ---
         List<Edge> edges = new ArrayList<>();
-        // Helper to prevent duplicate edges
         Set<String> existingEdges = new HashSet<>();
 
         for (String line : lines) {
             Matcher idMatcher = ID_PATTERN.matcher(line);
             if (idMatcher.find()) {
                 String currentId = idMatcher.group(1).trim();
-                GraphNode currentNode = nodeMap.get(currentId);
+                TaskNode currentNode = nodeMap.get(currentId);
 
                 // Metadata
                 Matcher isbn = ISBN_PATTERN.matcher(line);
                 if (isbn.find()) currentNode.setIsbn(isbn.group(1).trim());
                 Matcher url = URL_PATTERN.matcher(line);
                 if (url.find()) currentNode.setUrl(url.group(1).trim());
-                if (line.contains(DONE_TAG)) currentNode.setStatus(Status.DONE);
+                if (line.contains(DONE_TAG)) currentNode.setStatus(NodeStatus.DONE);
 
-                // Dependencies: @req(A) means A -> Current
+                // Dependencies
                 Matcher req = REQ_PATTERN.matcher(line);
                 while (req.find()) {
                     String[] requirements = req.group(1).split(",");
                     for (String reqId : requirements) {
                         reqId = reqId.trim();
                         if (nodeMap.containsKey(reqId)) {
-                            // Edge: Requirement (Source) -> Current Task (Target)
                             String key = reqId + "->" + currentId;
                             if (!existingEdges.contains(key)) {
                                 edges.add(new Edge(reqId, currentId));
@@ -85,7 +85,6 @@ public class ParserService {
             }
         }
 
-        // Status Logic
         calculateStatuses(nodeMap, edges);
 
         graph.setNodes(new ArrayList<>(nodeMap.values()));
@@ -93,20 +92,23 @@ public class ParserService {
         return graph;
     }
 
-    private void calculateStatuses(Map<String, GraphNode> nodeMap, List<Edge> edges) {
+    // UPDATED: Signature uses TaskNode
+    private void calculateStatuses(Map<String, TaskNode> nodeMap, List<Edge> edges) {
         Map<String, List<String>> incoming = new HashMap<>();
         for (Edge edge : edges) {
             incoming.computeIfAbsent(edge.getTargetId(), k -> new ArrayList<>()).add(edge.getSourceId());
         }
 
-        for (GraphNode node : nodeMap.values()) {
-            if (node.getStatus() == Status.DONE) continue;
+        for (TaskNode node : nodeMap.values()) {
+            if (node.getStatus() == NodeStatus.DONE) {
+                continue;
+            }
             List<String> deps = incoming.getOrDefault(node.getId(), Collections.emptyList());
             if (deps.isEmpty()) {
-                node.setStatus(Status.UNLOCKED);
+                node.setStatus(NodeStatus.UNLOCKED);
             } else {
-                boolean allDone = deps.stream().allMatch(id -> nodeMap.get(id).getStatus() == Status.DONE);
-                node.setStatus(allDone ? Status.UNLOCKED : Status.LOCKED);
+                boolean allDone = deps.stream().allMatch(id -> nodeMap.get(id).getStatus() == NodeStatus.DONE);
+                node.setStatus(allDone ? NodeStatus.UNLOCKED : NodeStatus.LOCKED);
             }
         }
     }

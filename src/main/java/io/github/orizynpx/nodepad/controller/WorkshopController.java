@@ -1,8 +1,10 @@
 package io.github.orizynpx.nodepad.controller;
 
+import io.github.orizynpx.nodepad.app.ServiceRegistry;
 import io.github.orizynpx.nodepad.model.Edge;
 import io.github.orizynpx.nodepad.model.GraphModel;
 import io.github.orizynpx.nodepad.service.ParserService;
+import io.github.orizynpx.nodepad.service.TaskMutatorService;
 import io.github.orizynpx.nodepad.view.EditorFactory;
 import io.github.orizynpx.nodepad.view.GraphRenderer;
 import javafx.application.Platform;
@@ -22,10 +24,15 @@ public class WorkshopController {
 
     private CodeArea codeArea;
     private GraphRenderer renderer;
-    private final ParserService parserService = new ParserService();
 
-    // Track current data to calculate dependencies for cascading undo
+    private final ParserService parserService;
+    private final TaskMutatorService taskMutatorService;
     private GraphModel currentModel;
+
+    public WorkshopController() {
+        this.parserService = ServiceRegistry.getInstance().getParserService();
+        this.taskMutatorService = ServiceRegistry.getInstance().getTaskMutatorService();
+    }
 
     @FXML
     public void initialize() {
@@ -37,8 +44,6 @@ public class WorkshopController {
         // 2. Renderer
         renderer = new GraphRenderer();
         renderer.setOnStatusToggle(this::toggleTask);
-
-        // Add DIRECTLY to StackPane (No ScrollPane wrapper, Renderer handles panning)
         graphContainer.getChildren().add(renderer);
 
         // 3. Default Text
@@ -87,33 +92,13 @@ public class WorkshopController {
      * If marking INCOMPLETE, it cascades to children to lock them.
      */
     private void toggleTask(String nodeId) {
-        String text = codeArea.getText();
-        String target = "@id(" + nodeId + ")";
-        String targetDone = target + " @done";
+        String currentText = codeArea.getText();
 
-        if (text.contains(targetDone)) {
-            // --- MARKING INCOMPLETE (Cascading Undo) ---
-            Set<String> nodesToReset = new HashSet<>();
-            nodesToReset.add(nodeId); // Add self
+        // LOGIC MOVED TO SERVICE (Satisfies Source 10 & 18)
+        String newText = taskMutatorService.toggleTaskStatus(currentText, currentModel, nodeId);
 
-            // Find all children that depend on this node
-            if (currentModel != null) {
-                collectDescendants(nodeId, nodesToReset);
-            }
-
-            // Batch Update: Remove @done from self AND all descendants
-            String newText = text;
-            for (String id : nodesToReset) {
-                String t = "@id(" + id + ")";
-                // Replace "@id(x) @done" with "@id(x)"
-                newText = newText.replace(t + " @done", t);
-            }
+        if (!newText.equals(currentText)) {
             codeArea.replaceText(newText);
-
-        } else if (text.contains(target)) {
-            // --- MARKING COMPLETE ---
-            // Just mark this one. Dependencies are checked by Parser/Renderer logic.
-            codeArea.replaceText(text.replace(target, targetDone));
         }
     }
 

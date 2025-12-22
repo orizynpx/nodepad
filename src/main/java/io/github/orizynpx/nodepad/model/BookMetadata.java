@@ -13,6 +13,10 @@ public class BookMetadata {
         this.imageUrl = imageUrl;
     }
 
+    public BookMetadata(String isbn) {
+        this(isbn, "Loading...", "Fetching data from OpenLibrary...", "");
+    }
+
     public String getIsbn() {
         return isbn;
     }

@@ -1,6 +1,7 @@
 package io.github.orizynpx.nodepad.controller;
 
-import io.github.orizynpx.nodepad.dao.BookCacheDao;
+import io.github.orizynpx.nodepad.app.ServiceRegistry;
+import io.github.orizynpx.nodepad.dao.BookRepository;
 import io.github.orizynpx.nodepad.model.BookMetadata;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
@@ -15,10 +16,16 @@ import java.util.List;
 
 public class InventoryController {
 
-    @FXML private ScrollPane scrollPane;
-    @FXML private TilePane tilePane;
+    @FXML
+    private ScrollPane scrollPane;
+    @FXML
+    private TilePane tilePane;
 
-    private final BookCacheDao bookCacheDao = new BookCacheDao();
+    private BookRepository bookRepository;
+
+    public InventoryController() {
+        this.bookRepository = ServiceRegistry.getInstance().getBookRepository();
+    }
 
     @FXML
     public void initialize() {
@@ -31,7 +38,7 @@ public class InventoryController {
 
     private void loadBooks() {
         tilePane.getChildren().clear();
-        List<BookMetadata> books = bookCacheDao.findAll();
+        List<BookMetadata> books = bookRepository.findAll();
 
         if (books.isEmpty()) {
             Label emptyLabel = new Label("No books collected yet.\nAdd @isbn(number) in your workshop!");

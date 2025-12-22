@@ -1,6 +1,7 @@
 package io.github.orizynpx.nodepad.controller;
 
-import io.github.orizynpx.nodepad.dao.FileDao;
+import io.github.orizynpx.nodepad.app.ServiceRegistry;
+import io.github.orizynpx.nodepad.dao.FileRepository;
 import io.github.orizynpx.nodepad.model.FileRecord;
 import javafx.fxml.FXML;
 import javafx.scene.control.ListCell;
@@ -13,9 +14,13 @@ public class DashboardController {
     @FXML private ListView<FileRecord> recentFilesList;
 
     private MainController mainController;
-    private final FileDao fileDao = new FileDao();
 
-    // Called by MainShell to link them
+    private final FileRepository fileRepository;
+
+    public DashboardController() {
+        this.fileRepository = ServiceRegistry.getInstance().getFileRepository();
+    }
+
     public void setMainController(MainController mainController) {
         this.mainController = mainController;
     }
@@ -48,7 +53,7 @@ public class DashboardController {
     }
 
     private void loadRecents() {
-        recentFilesList.getItems().setAll(fileDao.getRecentFiles());
+        recentFilesList.getItems().setAll(fileRepository.getRecentFiles());
     }
 
     @FXML
@@ -72,7 +77,8 @@ public class DashboardController {
 
     private void openFile(File file) {
         // 1. Save to DB
-        fileDao.addOrUpdateFile(file.getAbsolutePath());
+        fileRepository.addOrUpdateFile(file.getAbsolutePath());
+
         // 2. Open in Workshop
         if (mainController != null) {
             mainController.openWorkshop(file);

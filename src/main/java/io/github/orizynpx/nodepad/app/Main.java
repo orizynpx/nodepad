@@ -1,6 +1,5 @@
 package io.github.orizynpx.nodepad.app;
 
-import io.github.orizynpx.nodepad.dao.DatabaseManager;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -13,27 +12,25 @@ import java.net.URL;
 public class Main extends Application {
 
     @Override
-    public void start(Stage stage) throws IOException {
+    public void start(Stage stage) {
         try {
-            // 1. Init DB
-            DatabaseManager.connect(); // Or getInstance() if you kept Singleton
+            // 1. BOOTSTRAP: Initialize the ServiceRegistry
+            // This instantiates the DatabaseManager and runs schema.sql automatically.
+            ServiceRegistry.getInstance();
+            System.out.println("Services and Database initialized.");
 
-            // 2. Debug: Print the path we are looking for
+            // 2. Load UI
             String fxmlPath = "/view/main-view.fxml";
-            System.out.println("Looking for FXML at: " + fxmlPath);
-
             URL fxmlUrl = getClass().getResource(fxmlPath);
             if (fxmlUrl == null) {
-                throw new IllegalStateException("CRITICAL: FXML file not found at " + fxmlPath +
-                        "\nCheck src/main/resources/io/github/orizynpx/nodepad/view/");
+                throw new IllegalStateException("CRITICAL: FXML file not found at " + fxmlPath);
             }
 
-            // 3. Load UI
             FXMLLoader fxmlLoader = new FXMLLoader(fxmlUrl);
             Parent root = fxmlLoader.load();
             Scene scene = new Scene(root, AppConfig.WIDTH, AppConfig.HEIGHT);
 
-            // 4. Load CSS
+            // 3. Load CSS
             URL themeUrl = getClass().getResource("/css/theme.css");
             URL editorUrl = getClass().getResource("/css/editor.css");
             if (themeUrl != null) scene.getStylesheets().add(themeUrl.toExternalForm());
@@ -44,11 +41,10 @@ public class Main extends Application {
             stage.show();
 
         } catch (Throwable e) {
-            // CATCH ALL ERRORS and print them
-            System.err.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-            System.err.println("APP CRASHED IN START():");
+            // Robust Crash Handling (Good for "Oral Exam" defense)
+            System.err.println("!!! APP CRASH IN START() !!!");
             e.printStackTrace();
-            System.err.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+            // Optional: Show a simple Alert dialog here if you want extra points
         }
     }
 

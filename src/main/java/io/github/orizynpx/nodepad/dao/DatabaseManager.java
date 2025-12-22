@@ -8,34 +8,29 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Scanner;
 
-public class DatabaseManager {
+public class DatabaseManager implements ConnectionFactory {
 
     private static final String DB_URL = "jdbc:sqlite:nodepad.db";
 
-    // Static block executes once when the class is first loaded
-    static {
+    public DatabaseManager() {
+        // Load Driver
         try {
-            // Explicitly load the driver
             Class.forName("org.sqlite.JDBC");
-            initSchema();
         } catch (ClassNotFoundException e) {
             System.err.println("SQLite JDBC Driver not found!");
             e.printStackTrace();
         }
+
+        // Initialize Tables automatically on startup
+        initSchema();
     }
 
-    // Private constructor prevents instantiation
-    private DatabaseManager() {}
-
-    /**
-     * STATIC method to get a connection.
-     * Usage: try (Connection conn = DatabaseManager.connect()) { ... }
-     */
-    public static Connection connect() throws SQLException {
+    @Override
+    public Connection connect() throws SQLException {
         return DriverManager.getConnection(DB_URL);
     }
 
-    private static void initSchema() {
+    private void initSchema() {
         try (Connection conn = connect();
              Statement stmt = conn.createStatement()) {
 
@@ -63,8 +58,8 @@ public class DatabaseManager {
         }
     }
 
-    private static String loadResourceFile(String path) {
-        try (InputStream is = DatabaseManager.class.getResourceAsStream(path);
+    private String loadResourceFile(String path) {
+        try (InputStream is = getClass().getResourceAsStream(path);
              Scanner scanner = new Scanner(is, StandardCharsets.UTF_8)) {
             if (is == null) return "";
             return scanner.useDelimiter("\\A").next();

@@ -10,11 +10,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public class BookCacheDao {
+public class SqliteBookDao implements BookRepository {
+    private final ConnectionFactory connectionFactory;
+
+    public SqliteBookDao(ConnectionFactory connectionFactory) {
+        this.connectionFactory = connectionFactory;
+    }
 
     public void save(BookMetadata book) {
         String sql = "INSERT OR REPLACE INTO api_cache(isbn, title, description, image_url, fetched_at) VALUES(?, ?, ?, ?, ?)";
-        try (Connection conn = DatabaseManager.connect();
+        try (Connection conn = connectionFactory.connect();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             pstmt.setString(1, book.getIsbn());
@@ -31,7 +36,7 @@ public class BookCacheDao {
 
     public Optional<BookMetadata> findByIsbn(String isbn) {
         String sql = "SELECT * FROM api_cache WHERE isbn = ?";
-        try (Connection conn = DatabaseManager.connect();
+        try (Connection conn = connectionFactory.connect();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             pstmt.setString(1, isbn);
@@ -54,7 +59,7 @@ public class BookCacheDao {
     public List<BookMetadata> findAll() {
         List<BookMetadata> books = new ArrayList<>();
         String sql = "SELECT * FROM api_cache ORDER BY fetched_at DESC";
-        try (Connection conn = DatabaseManager.connect();
+        try (Connection conn = connectionFactory.connect();
              PreparedStatement pstmt = conn.prepareStatement(sql);
              ResultSet rs = pstmt.executeQuery()) {
 
@@ -70,5 +75,16 @@ public class BookCacheDao {
             e.printStackTrace();
         }
         return books;
+    }
+
+    public void delete(String isbn) {
+        String sql = "DELETE FROM api_cache WHERE isbn = ?";
+        try (Connection conn = connectionFactory.connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, isbn);
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 }

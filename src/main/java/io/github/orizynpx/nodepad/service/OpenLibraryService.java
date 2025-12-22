@@ -2,7 +2,7 @@ package io.github.orizynpx.nodepad.service;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import io.github.orizynpx.nodepad.dao.BookCacheDao;
+import io.github.orizynpx.nodepad.dao.BookRepository;
 import io.github.orizynpx.nodepad.model.BookMetadata;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -13,19 +13,17 @@ import java.util.concurrent.CompletableFuture;
 
 public class OpenLibraryService {
 
-    private final BookCacheDao bookCacheDao = new BookCacheDao();
+    private final BookRepository bookRepository;
     private final OkHttpClient client = new OkHttpClient();
 
-    /**
-     * Async method to fetch book details.
-     * 1. Checks DB.
-     * 2. If missing, hits API.
-     * 3. Saves to DB.
-     */
+    public OpenLibraryService(BookRepository bookRepository) {
+        this.bookRepository = bookRepository;
+    }
+
     public CompletableFuture<BookMetadata> fetchBookInfo(String isbn) {
         return CompletableFuture.supplyAsync(() -> {
             // 1. Check Cache
-            var cached = bookCacheDao.findByIsbn(isbn);
+            var cached = bookRepository.findByIsbn(isbn);
             if (cached.isPresent()) {
                 System.out.println("Cache Hit: " + isbn);
                 return cached.get();
@@ -59,7 +57,7 @@ public class OpenLibraryService {
                         BookMetadata metadata = new BookMetadata(isbn, title, desc, imageUrl);
 
                         // 3. Save to Cache
-                        bookCacheDao.save(metadata);
+                        bookRepository.save(metadata);
                         return metadata;
                     }
                 }
