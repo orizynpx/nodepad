@@ -8,9 +8,9 @@ public class GraphModel {
     private List<TaskNode> nodes;
     private List<Edge> edges;
 
-    public GraphModel() {
-        this.nodes = new ArrayList<>();
-        this.edges = new ArrayList<>();
+    public GraphModel(List<TaskNode> nodes, List<Edge> edges) {
+        this.nodes = nodes;
+        this.edges = edges;
     }
 
     public List<TaskNode> getNodes() {

@@ -6,7 +6,8 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
-import java.io.IOException;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap; // Thread-safe map
 import java.util.concurrent.CompletableFuture;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -15,7 +16,9 @@ public class LinkPreviewService {
     private final LinkRepository linkRepo;
     private final OkHttpClient client = new OkHttpClient();
 
-    // Regex for Open Graph tags
+    // 1. MEMORY CACHE (Instant Access)
+    private static final Map<String, LinkMetadata> memoryCache = new ConcurrentHashMap<>();
+
     private static final Pattern TITLE_TAG = Pattern.compile("<meta property=\"og:title\" content=\"([^\"]*)\"");
     private static final Pattern DESC_TAG = Pattern.compile("<meta property=\"og:description\" content=\"([^\"]*)\"");
     private static final Pattern IMG_TAG = Pattern.compile("<meta property=\"og:image\" content=\"([^\"]*)\"");
@@ -25,25 +28,37 @@ public class LinkPreviewService {
     }
 
     public CompletableFuture<LinkMetadata> fetchPreview(String url) {
-        return CompletableFuture.supplyAsync(() -> {
-            // 1. Check Cache
-            var cached = linkRepo.findByUrl(url);
-            if (cached.isPresent()) return cached.get();
+        // 2. CHECK MEMORY FIRST (0ms delay)
+        if (memoryCache.containsKey(url)) {
+            return CompletableFuture.completedFuture(memoryCache.get(url));
+        }
 
-            // 2. Network Request
+        return CompletableFuture.supplyAsync(() -> {
+            // 3. CHECK DATABASE (Disk delay)
+            var cached = linkRepo.findByUrl(url);
+            if (cached.isPresent()) {
+                LinkMetadata meta = cached.get();
+                memoryCache.put(url, meta); // Save to memory for next time
+                return meta;
+            }
+
+            // 4. NETWORK REQUEST (Internet delay)
             try {
                 Request request = new Request.Builder().url(url).build();
                 try (Response response = client.newCall(request).execute()) {
                     if (!response.isSuccessful() || response.body() == null) return null;
 
                     String html = response.body().string();
-
-                    String title = extract(html, TITLE_TAG, "No Title");
-                    String desc = extract(html, DESC_TAG, "No Description");
+                    String title = extract(html, TITLE_TAG, "External Link");
+                    String desc = extract(html, DESC_TAG, "No description available.");
                     String img = extract(html, IMG_TAG, "");
 
                     LinkMetadata meta = new LinkMetadata(url, title, desc, img);
-                    linkRepo.save(meta); // 3. Cache it
+
+                    // Save to both DB and Memory
+                    linkRepo.save(meta);
+                    memoryCache.put(url, meta);
+
                     return meta;
                 }
             } catch (Exception e) {

@@ -1,5 +1,6 @@
 package io.github.orizynpx.nodepad.controller;
 
+import io.github.orizynpx.nodepad.app.BrowserUtil;
 import io.github.orizynpx.nodepad.app.ProjectContext;
 import io.github.orizynpx.nodepad.app.ServiceRegistry;
 import io.github.orizynpx.nodepad.dao.BookRepository;
@@ -9,6 +10,7 @@ import io.github.orizynpx.nodepad.model.LinkMetadata; // Import this
 import io.github.orizynpx.nodepad.view.ImageCache;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
+import javafx.scene.Cursor;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.image.Image;
@@ -80,10 +82,22 @@ public class InventoryController {
 
     // --- 3. CREATE LINK CARD ---
     private VBox createLinkCard(LinkMetadata link) {
-        // Reusing a generic card builder or duplicating logic
         VBox card = createGenericCard(link.getTitle(), link.getDescription(), link.getImageUrl(), false);
 
-        // Styling tweak to distinguish Links from Books (e.g., Cyan Border)
+        // 1. VISUAL CUE: Change cursor to Hand
+        card.setCursor(Cursor.HAND);
+
+        // 2. STYLE: Add a hover effect (Glow)
+        card.setOnMouseEntered(e -> card.setStyle(card.getStyle() + "-fx-effect: dropshadow(three-pass-box, #00ffff, 10, 0, 0, 0);"));
+        card.setOnMouseExited(e -> card.setStyle(card.getStyle().replace("-fx-effect: dropshadow(three-pass-box, #00ffff, 10, 0, 0, 0);", "")));
+
+        // 3. ACTION: Open Browser
+        card.setOnMouseClicked(e -> {
+            System.out.println("Opening Link: " + link.getUrl());
+            BrowserUtil.open(link.getUrl());
+        });
+
+        // Specific border for links
         card.setStyle(card.getStyle() + "-fx-border-color: #00ffff; -fx-border-width: 0 0 2 0;");
         return card;
     }

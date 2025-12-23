@@ -1,8 +1,8 @@
 Project: RPG Roadmap
-- Learn C# Basics @id(c_sharp)
+- Learn C# Basics @id(c_sharp) @done
   Master variables, loops, and classes.
-- Install Unity Engine @id(unity_install)
-- Player Movement Script @id(mv_script) @req(c_sharp, unity_install)
+- Install Unity Engine @id(unity_install) @done
+- Player Movement Script @id(mv_script) @done @req(c_sharp, unity_install)
   Basic WASD movement implementation.
 - 2D Physics Assets @id(phys_2d) @req(unity_install)
 - Get rich @id(rich) @req(phys_2d)

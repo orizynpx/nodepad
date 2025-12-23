@@ -1,5 +1,6 @@
 package io.github.orizynpx.nodepad.view;
 
+import io.github.orizynpx.nodepad.app.BrowserUtil;
 import io.github.orizynpx.nodepad.app.ServiceRegistry;
 import io.github.orizynpx.nodepad.model.*;
 import javafx.geometry.Insets;
@@ -35,6 +36,7 @@ public class GraphRenderer extends Pane {
     private static final double BEZIER_OFFSET = 50.0;
     private static final double TOP_PADDING = 50.0;
     private static final double LEFT_PADDING = 50.0;
+    private static final double MAX_LABEL_WIDTH = 140.0;
 
     private Consumer<String> onStatusToggle;
     private VBox activeOverlay;
@@ -82,8 +84,10 @@ public class GraphRenderer extends Pane {
             parentsMap.put(n.getId(), new ArrayList<>());
             undirectedAdj.put(n.getId(), new ArrayList<>());
 
-            double textWidth = calculateTextWidth(n.getLabel());
-            double totalWidth = Math.max(textWidth, NODE_RADIUS * 2) + MIN_NODE_GAP;
+            double rawTextWidth = calculateTextWidth(n.getLabel());
+            double effectiveTextWidth = Math.min(rawTextWidth, MAX_LABEL_WIDTH);
+
+            double totalWidth = Math.max(effectiveTextWidth, NODE_RADIUS * 2) + MIN_NODE_GAP;
             nodeWidths.put(n.getId(), totalWidth);
         }
 
@@ -183,6 +187,9 @@ public class GraphRenderer extends Pane {
             label.setFont(Font.font("Consolas", FontWeight.BOLD, 12));
             label.setTextAlignment(TextAlignment.CENTER);
 
+            label.setWrapText(true);
+            label.setMaxWidth(MAX_LABEL_WIDTH);
+
             if (node.getIsbn() != null || node.getUrl() != null) {
                 Label meta = new Label((node.getIsbn() != null ? "📖 " : "") + (node.getUrl() != null ? "🔗" : ""));
                 meta.setTextFill(Color.GRAY);
@@ -193,10 +200,13 @@ public class GraphRenderer extends Pane {
             }
 
             label.layoutBoundsProperty().addListener((obs, old, bounds) -> {
+                // Center horizontally relative to node (x)
                 label.setLayoutX(x - (bounds.getWidth() / 2));
                 label.setLayoutY(y + NODE_RADIUS + 5);
             });
-            label.setLayoutX(x - (nodeWidths.get(node.getId()) / 2));
+
+            // Initial positioning (Approximation before render)
+            label.setLayoutX(x - (MAX_LABEL_WIDTH / 2));
             label.setLayoutY(y + NODE_RADIUS + 5);
 
             contentGroup.getChildren().addAll(c, label);
@@ -422,11 +432,21 @@ public class GraphRenderer extends Pane {
         desc.setWrapText(true);
         desc.setMaxWidth(250);
 
+        embed.setCursor(Cursor.HAND);
+
+        // 2. ACTION
+        embed.setOnMouseClicked(e -> {
+            BrowserUtil.open(meta.getUrl());
+            e.consume(); // Prevent the click from closing the overlay immediately if that logic exists
+        });
+
         embed.getChildren().addAll(title, desc);
 
         if (!meta.getImageUrl().isEmpty()) {
             try {
-                ImageView img = new ImageView(new Image(meta.getImageUrl(), true));
+                // CRITICAL: Must use ImageCache.get(), NOT new Image()
+                ImageView img = new ImageView(ImageCache.get(meta.getImageUrl()));
+
                 img.setFitHeight(100);
                 img.setFitWidth(200);
                 img.setPreserveRatio(true);

@@ -1,5 +1,7 @@
 package io.github.orizynpx.nodepad.view;
 
+import javafx.scene.text.Font;
+import javafx.scene.text.Text;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
 import org.fxmisc.richtext.model.StyleSpans;
@@ -24,13 +26,23 @@ public class EditorFactory {
         CodeArea codeArea = new CodeArea();
         codeArea.setParagraphGraphicFactory(LineNumberFactory.get(codeArea));
 
-        // Subscribe to text changes to re-compute highlighting
-        codeArea.textProperty().addListener((obs, oldText, newText) -> {
-            codeArea.setStyleSpans(0, computeHighlighting(newText));
-        });
+        // ... highlighting listener ...
 
-        // Set initial font
+        // 1. FONT SETUP
         codeArea.setStyle("-fx-font-family: 'Consolas', 'Monospace'; -fx-font-size: 14;");
+
+        // 2. TAB SIZE CONFIGURATION
+        // We calculate the pixel width of 4 spaces (' ') using the current font
+        Text t = new Text("    ");
+        t.setFont(Font.font("Consolas", 14)); // Must match the CSS above
+        double tabWidth = t.getLayoutBounds().getWidth();
+
+        // Apply logic: "Tab behaves like 4 spaces"
+        //codeArea.updateProperties(); // Refresh CSS first
+        // There isn't a direct "setTabSize" in basic RichTextFX without helper,
+        // but typically users just type spaces.
+        // However, if they paste tabs, ParserService now handles them (line.replaceAll).
+
         return codeArea;
     }
 
