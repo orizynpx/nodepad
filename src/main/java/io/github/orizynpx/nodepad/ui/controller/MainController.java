@@ -16,16 +16,14 @@ public class MainController {
     @FXML private Button btnInventory;
 
     private final ViewFactory viewFactory;
-    private final FileSystemRepository fileSystem; // Needed to read files
+    private final FileSystemRepository fileSystem;
 
     private Parent dashboardView;
     private Parent inventoryView;
-
-    // Track active workshop
     private Parent workshopView;
     private WorkshopController workshopController;
 
-    // Updated Constructor
+    // Constructor Injection (Called by ViewFactory)
     public MainController(ViewFactory viewFactory, FileSystemRepository fileSystem) {
         this.viewFactory = viewFactory;
         this.fileSystem = fileSystem;
@@ -39,7 +37,7 @@ public class MainController {
     }
 
     @FXML
-    private void showDashboard() {
+    public void showDashboard() {
         if (dashboardView == null) {
             dashboardView = viewFactory.loadDashboardView(this);
         }
@@ -47,48 +45,47 @@ public class MainController {
     }
 
     @FXML
-    private void showWorkshop() {
+    public void showWorkshop() {
         if (workshopView != null) {
             contentArea.getChildren().setAll(workshopView);
+        } else {
+            openWorkshop(null); // Fallback
         }
     }
 
     @FXML
-    private void showInventory() {
+    public void showInventory() {
         if (inventoryView == null) {
             inventoryView = viewFactory.loadInventoryView();
+        } else {
+            // If you have a refresh method in InventoryController, cast and call it here
+            // ((InventoryController)inventoryView.getUserData()).refresh();
+            // Note: This requires managing controller references better, but rebuilding view works for now:
+            inventoryView = viewFactory.loadInventoryView();
         }
-        // Ideally call inventoryController.refresh() here if you kept the reference
         contentArea.getChildren().setAll(inventoryView);
     }
 
-    /**
-     * Called by Dashboard to open/create a project
-     */
     public void openWorkshop(File file) {
         try {
-            // 1. USE FACTORY (Fixes the crash)
+            // FIX: Use Factory to ensure Dependencies are injected
             ViewFactory.WorkshopWrapper wrapper = viewFactory.loadWorkshopWrapper();
             this.workshopView = wrapper.view;
             this.workshopController = wrapper.controller;
 
-            // 2. Enable Nav
             btnWorkshop.setDisable(false);
             btnInventory.setDisable(false);
 
-            // 3. Load Content
             if (file != null) {
-                // Use the injected repository to read the file
                 String content = fileSystem.readFile(file);
                 workshopController.loadContent(content);
+                workshopController.setCurrentFile(file);
             } else {
-                // New file logic is handled by WorkshopController default
+                workshopController.setCurrentFile(null);
             }
 
-            // 4. Show it
             contentArea.getChildren().setAll(workshopView);
-
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }

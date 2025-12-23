@@ -13,16 +13,16 @@ public class DashboardController {
     @FXML private ListView<FileRecord> recentFilesList;
 
     private final MainController mainNav;
-    private final FileRepository fileRepo;
+    private final FileRepository fileRepository;
 
-    public DashboardController(MainController mainNav, FileRepository fileRepo) {
+    // Constructor Injection
+    public DashboardController(MainController mainNav, FileRepository fileRepository) {
         this.mainNav = mainNav;
-        this.fileRepo = fileRepo;
+        this.fileRepository = fileRepository;
     }
 
     @FXML
     public void initialize() {
-        // Setup List UI
         recentFilesList.setCellFactory(param -> new ListCell<>() {
             @Override
             protected void updateItem(FileRecord item, boolean empty) {
@@ -37,11 +37,9 @@ public class DashboardController {
             }
         });
 
-        // Double click logic
         recentFilesList.setOnMouseClicked(e -> {
             if (e.getClickCount() == 2 && recentFilesList.getSelectionModel().getSelectedItem() != null) {
-                File file = new File(recentFilesList.getSelectionModel().getSelectedItem().getFilePath());
-                openFile(file);
+                openFile(new File(recentFilesList.getSelectionModel().getSelectedItem().getFilePath()));
             }
         });
 
@@ -49,7 +47,7 @@ public class DashboardController {
     }
 
     private void loadRecents() {
-        recentFilesList.getItems().setAll(fileRepo.getRecentFiles());
+        recentFilesList.getItems().setAll(fileRepository.getRecentFiles());
     }
 
     @FXML
@@ -60,15 +58,16 @@ public class DashboardController {
     @FXML
     private void handleOpenFile() {
         FileChooser fileChooser = new FileChooser();
-        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Nodepad Files", "*.txt", "*.npad"));
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Text Files", "*.txt"));
         File file = fileChooser.showOpenDialog(recentFilesList.getScene().getWindow());
+
         if (file != null) {
             openFile(file);
         }
     }
 
     private void openFile(File file) {
-        fileRepo.addOrUpdateFile(file.getAbsolutePath());
+        fileRepository.addOrUpdateFile(file.getAbsolutePath());
         mainNav.openWorkshop(file);
     }
 }

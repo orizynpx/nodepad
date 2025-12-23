@@ -1,19 +1,14 @@
 package io.github.orizynpx.nodepad.config;
 
 import io.github.orizynpx.nodepad.domain.logic.GraphLayoutEngine;
-import io.github.orizynpx.nodepad.domain.logic.TaskMutatorService; // NEW IMPORT
+import io.github.orizynpx.nodepad.domain.logic.TaskMutatorService;
 import io.github.orizynpx.nodepad.domain.logic.TextParser;
-import io.github.orizynpx.nodepad.domain.port.FileSystemRepository;
-import io.github.orizynpx.nodepad.domain.port.FileRepository; // NEW IMPORT
-import io.github.orizynpx.nodepad.domain.port.MetadataRepository;
-import io.github.orizynpx.nodepad.domain.port.TagStrategy;
+import io.github.orizynpx.nodepad.domain.port.*;
 import io.github.orizynpx.nodepad.infrastructure.external.OpenLibraryClient;
-import io.github.orizynpx.nodepad.infrastructure.persistence.DatabaseConnection;
-import io.github.orizynpx.nodepad.infrastructure.persistence.LocalFileSystemRepository;
-import io.github.orizynpx.nodepad.infrastructure.persistence.SqliteFileDao; // NEW IMPORT
-import io.github.orizynpx.nodepad.infrastructure.persistence.SqliteMetadataRepository;
+import io.github.orizynpx.nodepad.infrastructure.persistence.*;
 import io.github.orizynpx.nodepad.infrastructure.text.IsbnTagStrategy;
 import io.github.orizynpx.nodepad.infrastructure.text.UrlTagStrategy;
+import io.github.orizynpx.nodepad.service.LinkPreviewService; // Added
 
 import java.util.List;
 
@@ -21,49 +16,51 @@ public class AppContainer {
 
     private static AppContainer instance;
 
-    // --- Repositories (Ports) ---
-    private final MetadataRepository metadataRepository;
+    // Repositories
+    private final MetadataRepository metadataRepository; // Books
+    private final LinkRepository linkRepository;         // Links (Added)
     private final FileSystemRepository fileSystemRepository;
-    private final FileRepository fileRepository; // NEW FIELD
+    private final FileRepository fileRepository;
 
-    // --- Services (Logic/External) ---
+    // Services
     private final TextParser textParser;
     private final GraphLayoutEngine graphLayoutEngine;
     private final OpenLibraryClient openLibraryClient;
-    private final TaskMutatorService taskMutatorService; // NEW FIELD
+    private final TaskMutatorService taskMutatorService;
+    private final LinkPreviewService linkPreviewService; // Added
 
     private AppContainer() {
-        // 1. Init Infrastructure
-        DatabaseConnection.getInstance();
+        DatabaseConnection conn = DatabaseConnection.getInstance();
 
-        // 2. Init Repositories
+        // Init Repositories
         this.metadataRepository = new SqliteMetadataRepository();
+        this.linkRepository = new SqliteLinkDao(conn::getConnection); // Reuse connection logic
         this.fileSystemRepository = new LocalFileSystemRepository();
         this.fileRepository = new SqliteFileDao();
 
-        // 3. Init Logic
+        // Init Logic
         List<TagStrategy> tagStrategies = List.of(new IsbnTagStrategy(), new UrlTagStrategy());
         this.textParser = new TextParser(tagStrategies);
         this.graphLayoutEngine = new GraphLayoutEngine();
-
-        // --- MISSING LINK: Initialize Service ---
         this.taskMutatorService = new TaskMutatorService();
 
-        // 4. External
+        // Init External Services
         this.openLibraryClient = new OpenLibraryClient();
+        this.linkPreviewService = new LinkPreviewService(this.linkRepository);
     }
 
     public static synchronized AppContainer getInstance() {
-        if (instance == null) {
-            instance = new AppContainer();
-        }
+        if (instance == null) instance = new AppContainer();
         return instance;
     }
 
-    // --- Accessors for UI Controllers ---
-
+    // Getters
     public MetadataRepository getMetadataRepository() {
         return metadataRepository;
+    }
+
+    public LinkRepository getLinkRepository() {
+        return linkRepository;
     }
 
     public FileSystemRepository getFileSystemRepository() {
@@ -72,7 +69,7 @@ public class AppContainer {
 
     public FileRepository getFileRepository() {
         return fileRepository;
-    } // NEW GETTER
+    }
 
     public TextParser getTextParser() {
         return textParser;
@@ -88,5 +85,9 @@ public class AppContainer {
 
     public TaskMutatorService getTaskMutatorService() {
         return taskMutatorService;
+    }
+
+    public LinkPreviewService getLinkPreviewService() {
+        return linkPreviewService;
     }
 }
