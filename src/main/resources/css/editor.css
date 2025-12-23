@@ -1,25 +1,41 @@
-.keyword-id {
-    -fx-fill: #00ffff;
+.styled-text-area {
+    -fx-background-color: #fafafa;
+    -fx-font-family: 'Consolas', 'Monospace';
+    -fx-font-size: 11pt;
+    /* Add a default dark fill for standard text if needed */
+    -fx-fill: #333333;
+}
+
+.styled-text-area .lineno {
+    -fx-fill: #222222;
+    -fx-padding: 0 10 0 0;
+}
+
+.styled-text-area .keyword-id {
+    /* Was Neon Blue -> Deep Royal Blue */
+    -fx-fill: #0056b3;
     -fx-font-weight: bold;
 }
 
-/* Neon Blue */
-.keyword-req {
-    -fx-fill: #ff00ff;
+.styled-text-area .keyword-req {
+    /* Was Neon Pink -> Berry/Dark Magenta */
+    -fx-fill: #c2185b;
 }
 
-/* Neon Pink */
-.keyword-isbn {
-    -fx-fill: #ffd700;
+/* Was Gold -> Dark Goldenrod/Ochre */
+/* Yellows must be very dark to be readable on white */
+.styled-text-area .keyword-isbn,
+.styled-text-area .keyword-url {
+    -fx-fill: #b36b00;
 }
 
-/* Gold */
-.keyword-done {
-    -fx-fill: #00ff99;
+.styled-text-area .keyword-done {
+    /* Was Neon Green -> Emerald/Forest Green */
+    -fx-fill: #007a33;
     -fx-font-weight: bold;
 }
 
-/* Green */
-.comment {
-    -fx-fill: #777;
+.styled-text-area .comment {
+    /* Was #777 -> Slightly darker Grey for better focus */
+    -fx-fill: #333333;
 }

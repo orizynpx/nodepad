@@ -28,27 +28,27 @@ public class GraphOverlayBuilder {
     public Node createOverlay(TaskNode node, Runnable closeCallback) {
         VBox overlay = new VBox(8);
         overlay.setPadding(new Insets(10));
-        overlay.setStyle("-fx-background-color: rgba(30, 30, 30, 0.98); -fx-border-color: #00ffff; -fx-border-radius: 8; -fx-background-radius: 8; -fx-effect: dropshadow(three-pass-box, black, 10, 0, 0, 0);");
+        overlay.getStyleClass().add("graph-overlay");
         overlay.setMinWidth(220);
         overlay.setMaxWidth(300);
         overlay.setCursor(Cursor.DEFAULT);
 
         Label title = new Label(node.getLabel());
-        title.setStyle("-fx-text-fill: #00ffff; -fx-font-weight: bold; -fx-font-size: 14px;");
+        title.getStyleClass().add("overlay-title");
         title.setWrapText(true);
         overlay.getChildren().add(title);
 
         if (!node.getDescription().isEmpty()) {
             Label desc = new Label(node.getDescription());
-            desc.setStyle("-fx-text-fill: #cccccc; -fx-font-size: 12px;");
+            desc.getStyleClass().add("overlay-desc");
             desc.setWrapText(true);
             overlay.getChildren().add(desc);
         }
 
-        // --- Async Fetching Logic (Now Isolated) ---
+        // --- Async Fetching Logic ---
         if (node.getIsbn() != null) {
             Label loading = new Label("Fetching Book Data...");
-            loading.setStyle("-fx-text-fill: #ffd700; -fx-font-style: italic; -fx-font-size: 10px;");
+            loading.getStyleClass().add("overlay-loading");
             overlay.getChildren().add(loading);
 
             ServiceRegistry.getInstance().getOpenLibraryService()
@@ -59,7 +59,7 @@ public class GraphOverlayBuilder {
                             overlay.getChildren().add(createBookEmbed(book));
                         } else {
                             Label err = new Label("Book not found.");
-                            err.setStyle("-fx-text-fill: #ff5555; -fx-font-size: 10px;");
+                            err.getStyleClass().add("overlay-error");
                             overlay.getChildren().add(err);
                         }
                     }));
@@ -67,7 +67,7 @@ public class GraphOverlayBuilder {
 
         if (node.getUrl() != null) {
             Label loading = new Label("Loading Preview...");
-            loading.setStyle("-fx-text-fill: #aaa; -fx-font-style: italic;");
+            loading.getStyleClass().add("overlay-loading-link");
             overlay.getChildren().add(loading);
 
             ServiceRegistry.getInstance().getLinkPreviewService()
@@ -86,7 +86,7 @@ public class GraphOverlayBuilder {
 
         if (node.getStatus() == NodeStatus.DONE) {
             btn.setText("Mark Incomplete");
-            btn.setStyle("-fx-background-color: #442222; -fx-text-fill: #ff9999;");
+            btn.getStyleClass().add("btn-mark-incomplete");
             btn.setOnAction(e -> {
                 if (statusToggleAction != null) statusToggleAction.accept(node.getId());
                 closeCallback.run();
@@ -96,7 +96,7 @@ public class GraphOverlayBuilder {
             btn.setDisable(true);
         } else {
             btn.setText("Mark Completed");
-            btn.setStyle("-fx-background-color: #224422; -fx-text-fill: #99ff99;");
+            btn.getStyleClass().add("btn-mark-complete");
             btn.setOnAction(e -> {
                 if (statusToggleAction != null) statusToggleAction.accept(node.getId());
                 closeCallback.run();
@@ -109,17 +109,17 @@ public class GraphOverlayBuilder {
 
     private VBox createBookEmbed(BookMetadata book) {
         VBox embed = new VBox(5);
-        embed.setStyle("-fx-border-color: #ffd700; -fx-border-width: 0 0 0 3; -fx-padding: 0 0 0 8; -fx-background-color: rgba(255, 215, 0, 0.1);");
+        embed.getStyleClass().add("embed-box-book");
 
         Label lbl = new Label("LIBRARY REFERENCE");
-        lbl.setStyle("-fx-text-fill: #ffd700; -fx-font-size: 8px; -fx-font-weight: bold;");
+        lbl.getStyleClass().add("embed-label-ref");
 
         Label title = new Label(book.getTitle());
-        title.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 11px;");
+        title.getStyleClass().add("embed-title");
         title.setWrapText(true);
 
         Label isbn = new Label("ISBN: " + book.getIsbn());
-        isbn.setStyle("-fx-text-fill: #aaaaaa; -fx-font-size: 9px; -fx-font-family: 'Monospace';");
+        isbn.getStyleClass().add("embed-subtitle");
 
         embed.getChildren().addAll(lbl, title, isbn);
 
@@ -137,13 +137,13 @@ public class GraphOverlayBuilder {
 
     private VBox createLinkEmbed(LinkMetadata meta) {
         VBox embed = new VBox(5);
-        embed.setStyle("-fx-border-color: #00ffff; -fx-border-width: 0 0 0 3; -fx-padding: 0 0 0 8; -fx-background-color: rgba(0,0,0,0.2);");
+        embed.getStyleClass().add("embed-box-link");
 
         Label title = new Label(meta.getTitle());
-        title.setStyle("-fx-text-fill: #00aaff; -fx-font-weight: bold; -fx-font-size: 11px;");
+        title.getStyleClass().add("embed-link-title");
 
         Label desc = new Label(meta.getDescription());
-        desc.setStyle("-fx-text-fill: #aaaaaa; -fx-font-size: 10px;");
+        desc.getStyleClass().add("embed-link-desc");
         desc.setWrapText(true);
         desc.setMaxWidth(250);
 

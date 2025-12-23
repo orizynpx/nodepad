@@ -6,4 +6,6 @@ import java.util.List;
 public interface FileRepository {
     void addOrUpdateFile(String filePath);
     List<FileRecord> getRecentFiles();
+    void updateFilePath(String oldPath, String newPath);
+    void removeFileRecord(String filePath);
 }

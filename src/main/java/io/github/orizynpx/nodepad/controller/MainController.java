@@ -82,13 +82,9 @@ public class MainController {
 
     public void openWorkshop(File file) {
         try {
-            // Only load if not already loaded (or reloading a specific file)
-            // Note: For a real app, you might want to reload purely to clear state,
-            // but here we just need to ensure the loader uses DI.
             if (workshopView == null) {
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/workshop.fxml"));
 
-                // --- FIX: Use the Factory from Main ---
                 loader.setControllerFactory(Main.getControllerFactory());
 
                 workshopView = loader.load();
@@ -100,8 +96,6 @@ public class MainController {
 
             if (file != null) {
                 workshopController.setCurrentFile(file);
-                // We can access repo via registry here or inject repo into MainController too.
-                // For simplicity, keeping the registry call for the data loading part only.
                 String content = ServiceRegistry.getInstance().getContentRepository().loadContent(file);
                 workshopController.loadContent(content);
             } else {

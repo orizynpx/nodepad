@@ -19,7 +19,6 @@ import java.util.*;
 import java.util.function.BiFunction;
 
 public class GraphRenderer extends Pane {
-
     private static final double NODE_RADIUS = 15.0;
     private static final double VERTICAL_SPACING = 100.0;
     private static final double MIN_NODE_GAP = 30.0;
@@ -28,7 +27,6 @@ public class GraphRenderer extends Pane {
     private static final double TOP_PADDING = 50.0;
     private static final double LEFT_PADDING = 50.0;
 
-    // DIP: We ask this provider for the UI content (Popup/Overlay)
     private BiFunction<TaskNode, Runnable, Node> overlayProvider;
 
     private Node activeOverlay;
@@ -40,7 +38,9 @@ public class GraphRenderer extends Pane {
     public GraphRenderer() {
         getChildren().add(contentGroup);
         setPickOnBounds(true);
-        setStyle("-fx-background-color: transparent;");
+
+        getStyleClass().add("graph-pane");
+
         setCursor(Cursor.MOVE);
         enablePanning();
 
@@ -172,12 +172,22 @@ public class GraphRenderer extends Pane {
 
             // Icon indicators
             if (node.getIsbn() != null || node.getUrl() != null) {
-                Label meta = new Label((node.getIsbn() != null ? "📖 " : "") + (node.getUrl() != null ? "🔗" : ""));
-                meta.setTextFill(Color.GRAY);
-                meta.setFont(Font.font(10));
-                meta.setLayoutX(x + 10);
-                meta.setLayoutY(y - 15);
-                contentGroup.getChildren().add(meta);
+                // Combine icons if both exist
+                String iconText = (node.getIsbn() != null ? "📖" : "") + (node.getUrl() != null ? "🔗" : "");
+
+                Label icon = new Label(iconText);
+                // Use black for visibility on Gold/Green, White for visibility on Dark Grey
+                icon.setTextFill(node.getStatus() == NodeStatus.LOCKED ? Color.LIGHTGRAY : Color.BLACK);
+                icon.setFont(Font.font(10)); // Small enough to fit
+                icon.setMouseTransparent(true); // CRITICAL: Lets clicks pass through to the Circle
+
+                // Center logic
+                icon.layoutBoundsProperty().addListener((obs, old, bounds) -> {
+                    icon.setLayoutX(x - (bounds.getWidth() / 2));
+                    icon.setLayoutY(y - (bounds.getHeight() / 2));
+                });
+
+                contentGroup.getChildren().add(icon);
             }
 
             label.layoutBoundsProperty().addListener((obs, old, bounds) -> {
@@ -212,9 +222,6 @@ public class GraphRenderer extends Pane {
         }
     }
 
-    /**
-     * SRP FIX: The Renderer (View) decides the colors, not the Model.
-     */
     private Color getStatusColor(NodeStatus status) {
         if (status == null) return Color.web("#333333");
         return switch (status) {
@@ -229,7 +236,10 @@ public class GraphRenderer extends Pane {
                                        Map<String, Point2D> positions,
                                        Map<String, List<String>> childrenMap,
                                        Map<String, Double> nodeWidths) {
-        if (positions.containsKey(nodeId)) return;
+        if (positions.containsKey(nodeId)) {
+            return;
+        }
+
         List<String> children = childrenMap.get(nodeId);
         double y = TOP_PADDING + (depth * VERTICAL_SPACING);
         double myWidth = nodeWidths.get(nodeId);
@@ -267,9 +277,11 @@ public class GraphRenderer extends Pane {
             if (!visited.contains(node)) {
                 Set<String> comp = new HashSet<>();
                 Queue<String> q = new LinkedList<>();
+
                 q.add(node);
                 visited.add(node);
                 comp.add(node);
+
                 while (!q.isEmpty()) {
                     String curr = q.poll();
                     for (String neighbor : adj.getOrDefault(curr, Collections.emptyList())) {

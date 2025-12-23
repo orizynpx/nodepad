@@ -7,13 +7,13 @@
 
 <VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="io.github.orizynpx.nodepad.controller.InventoryController"
-      style="-fx-background-color: #1e1e1e; -fx-padding: 20;" spacing="20">
+      styleClass="inventory-container" spacing="20">
 
-    <Label text="SKILL LIBRARY" style="-fx-text-fill: #00ffff; -fx-font-size: 28; -fx-font-weight: bold;"/>
+    <Label text="File Contents" styleClass="inventory-title"/>
 
-    <ScrollPane fx:id="scrollPane" style="-fx-background: transparent; -fx-background-color: transparent;" fitToWidth="true">
+    <ScrollPane fx:id="scrollPane" styleClass="inventory-scroll" fitToWidth="true">
         <content>
-            <TilePane fx:id="tilePane" hgap="20" vgap="20" style="-fx-background-color: #1e1e1e;"/>
+            <TilePane fx:id="tilePane" hgap="20" vgap="20" styleClass="inventory-tilepane"/>
         </content>
     </ScrollPane>
 

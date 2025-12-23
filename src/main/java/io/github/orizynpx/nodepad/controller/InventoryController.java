@@ -29,7 +29,6 @@ public class InventoryController {
     private final LinkRepository linkRepository;
     private final SharedProjectModel projectModel;
 
-    // Constructor Injection
     public InventoryController(BookRepository bookRepo, LinkRepository linkRepo, SharedProjectModel projectModel) {
         this.bookRepository = bookRepo;
         this.linkRepository = linkRepo;
@@ -41,22 +40,18 @@ public class InventoryController {
         scrollPane.setFitToWidth(true);
         tilePane.setPrefColumns(3);
 
-        // REACTIVE: Listen for changes in the shared model
         projectModel.getActiveIsbns().addListener((SetChangeListener<String>) change -> refresh());
         projectModel.getActiveUrls().addListener((SetChangeListener<String>) change -> refresh());
 
-        // Initial render
         refresh();
     }
 
-    // No longer public! It updates itself automatically.
     private void refresh() {
         tilePane.getChildren().clear();
 
-        // 1. Render Books
         if (projectModel.getActiveIsbns().isEmpty() && projectModel.getActiveUrls().isEmpty()) {
             Label emptyLabel = new Label("Inventory Empty.\nAdd @isbn(..) or @url(..) to your nodes.");
-            emptyLabel.setStyle("-fx-text-fill: #777; -fx-font-size: 14;");
+            emptyLabel.getStyleClass().add("inventory-empty-label");
             tilePane.getChildren().add(emptyLabel);
             return;
         }
@@ -69,7 +64,6 @@ public class InventoryController {
             }
         }
 
-        // 2. Render Links
         for (String url : projectModel.getActiveUrls()) {
             Optional<LinkMetadata> linkOpt = linkRepository.findByUrl(url);
             if (linkOpt.isPresent()) {
@@ -79,20 +73,23 @@ public class InventoryController {
     }
 
     private VBox createBookCard(BookMetadata book) {
-        return createGenericCard(book.getTitle(), "ISBN: " + book.getIsbn(), book.getImageUrl(), true);
+        return createGenericCard(book.getTitle(), "ISBN: " + book.getIsbn(), book.getImageUrl(), true, false);
     }
 
     private VBox createLinkCard(LinkMetadata link) {
-        VBox card = createGenericCard(link.getTitle(), link.getDescription(), link.getImageUrl(), false);
-        card.setStyle(card.getStyle() + "-fx-border-color: #00ffff; -fx-border-width: 0 0 2 0;");
-        return card;
+        return createGenericCard(link.getTitle(), link.getDescription(), link.getImageUrl(), false, true);
     }
 
-    private VBox createGenericCard(String titleText, String subText, String imgUrl, boolean isPortrait) {
+    private VBox createGenericCard(String titleText, String subText, String imgUrl, boolean isPortrait, boolean isLink) {
         VBox card = new VBox(5);
         card.setAlignment(Pos.CENTER);
-        card.setStyle("-fx-background-color: #333; -fx-padding: 10; -fx-background-radius: 5; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.5), 5, 0, 0, 0);");
         card.setPrefSize(150, 220);
+
+        // REPLACED INLINE STYLE
+        card.getStyleClass().add("card");
+        if (isLink) {
+            card.getStyleClass().add("card-link");
+        }
 
         ImageView imageView = new ImageView();
         if (isPortrait) {
@@ -113,13 +110,13 @@ public class InventoryController {
         }
 
         Label title = new Label(titleText);
-        title.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 12;");
+        title.getStyleClass().add("card-title");
         title.setWrapText(true);
         title.setMaxWidth(130);
         title.setMaxHeight(40);
 
         Label subtitle = new Label(subText);
-        subtitle.setStyle("-fx-text-fill: #aaa; -fx-font-size: 10;");
+        subtitle.getStyleClass().add("card-subtitle");
         subtitle.setWrapText(true);
         subtitle.setMaxWidth(130);
         subtitle.setMaxHeight(30);

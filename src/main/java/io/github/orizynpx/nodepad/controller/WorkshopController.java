@@ -61,13 +61,12 @@ public class WorkshopController {
 
     @FXML
     public void initialize() {
-        // 1. Editor Setup
         codeArea = EditorFactory.createCodeArea();
         codeArea.setWrapText(true);
         editorContainer.getChildren().add(new VirtualizedScrollPane<>(codeArea));
 
         Button saveBtn = new Button("SAVE");
-        saveBtn.setStyle("-fx-background-color: #00ffff; -fx-text-fill: black; -fx-font-weight: bold; -fx-cursor: hand;");
+        saveBtn.getStyleClass().add("btn-save");
         saveBtn.setOnAction(e -> save());
         StackPane.setAlignment(saveBtn, Pos.TOP_RIGHT);
         StackPane.setMargin(saveBtn, new Insets(10));

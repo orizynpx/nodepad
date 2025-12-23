@@ -68,13 +68,17 @@ public class Main extends Application {
 
             URL themeUrl = getClass().getResource("/css/theme.css");
             URL editorUrl = getClass().getResource("/css/editor.css");
-            if (themeUrl != null) scene.getStylesheets().add(themeUrl.toExternalForm());
-            if (editorUrl != null) scene.getStylesheets().add(editorUrl.toExternalForm());
+
+            if (themeUrl != null) {
+                scene.getStylesheets().add(themeUrl.toExternalForm());
+            }
+            if (editorUrl != null) {
+                scene.getStylesheets().add(editorUrl.toExternalForm());
+            }
 
             stage.setTitle(AppConfig.APP_TITLE);
             stage.setScene(scene);
             stage.show();
-
         } catch (Throwable e) {
             e.printStackTrace();
         }

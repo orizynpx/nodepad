@@ -14,8 +14,9 @@ public class EditorFactory {
 
     private static final Pattern PATTERN = Pattern.compile(
             "(?<ID>@id\\([^)]+\\))" +
-                    "|(?<REQ>@(?:req|requires)\\([^)]+\\))" + // UPDATED regex here
+                    "|(?<REQ>@(?:req|requires)\\([^)]+\\))" +
                     "|(?<ISBN>@isbn\\([^)]+\\))" +
+                    "|(?<URL>@url\\([^)]+\\))" + // ADDED THIS
                     "|(?<DONE>@done)" +
                     "|(?<COMMENT>#.*)"
     );
@@ -24,13 +25,11 @@ public class EditorFactory {
         CodeArea codeArea = new CodeArea();
         codeArea.setParagraphGraphicFactory(LineNumberFactory.get(codeArea));
 
-        // Subscribe to text changes to re-compute highlighting
         codeArea.textProperty().addListener((obs, oldText, newText) -> {
             codeArea.setStyleSpans(0, computeHighlighting(newText));
         });
 
-        // Set initial font
-        codeArea.setStyle("-fx-font-family: 'Consolas', 'Monospace'; -fx-font-size: 14;");
+        codeArea.getStyleClass().add("code-area");
         return codeArea;
     }
 
@@ -44,9 +43,10 @@ public class EditorFactory {
                     matcher.group("ID") != null ? "keyword-id" :
                             matcher.group("REQ") != null ? "keyword-req" :
                                     matcher.group("ISBN") != null ? "keyword-isbn" :
-                                            matcher.group("DONE") != null ? "keyword-done" :
-                                                    matcher.group("COMMENT") != null ? "comment" :
-                                                            null;
+                                            matcher.group("URL") != null ? "keyword-url" : // MAPPED HERE
+                                                    matcher.group("DONE") != null ? "keyword-done" :
+                                                            matcher.group("COMMENT") != null ? "comment" :
+                                                                    null;
 
             spansBuilder.add(Collections.emptyList(), matcher.start() - lastKwEnd);
             spansBuilder.add(Collections.singleton(styleClass), matcher.end() - matcher.start());
