@@ -1,5 +1,6 @@
 package io.github.orizynpx.nodepad.dao;
 
+import java.io.File;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
@@ -10,10 +11,18 @@ import java.util.Scanner;
 
 public class DatabaseManager implements DatabaseFactory {
 
-    private static final String DB_URL = "jdbc:sqlite:nodepad.db";
+    private static final String DB_URL;
+
+    static {
+        // Saves to C:\Users\YourName\nodepad.db
+        String userHome = System.getProperty("user.home");
+        File dbFile = new File(userHome, "nodepad.db");
+        DB_URL = "jdbc:sqlite:" + dbFile.getAbsolutePath().replace("\\", "/");
+    }
 
     public DatabaseManager() {
-        System.out.println(">>> ACTIVE DATABASE PATH: " + new java.io.File("nodepad.db").getAbsolutePath());
+        String userHome = System.getProperty("user.home");
+        System.out.println(">>> ACTIVE DATABASE PATH: " + new File(userHome, "nodepad.db").getAbsolutePath());
 
         // Load Ddiver
         try {

@@ -1,9 +1,13 @@
 plugins {
     java
     application
-    id("org.javamodularity.moduleplugin") version "1.8.15"
-    id("org.openjfx.javafxplugin") version "0.0.13"
-    id("org.beryx.jlink") version "2.25.0"
+    // Update to 2.0.0 (Supports Java 21+)
+    id("org.javamodularity.moduleplugin") version "2.0.0"
+
+    id("org.openjfx.javafxplugin") version "0.1.0"
+
+    // Update to 3.1.1 (Supports Java 21+)
+    id("org.beryx.jlink") version "3.1.1"
 }
 
 group = "io.github.orizynpx"
@@ -13,21 +17,17 @@ repositories {
     mavenCentral()
 }
 
-val junitVersion = "5.12.1"
-
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(24)
+        // Recommend 21 for stability with jpackage
+        languageVersion = JavaLanguageVersion.of(21)
     }
-}
-
-tasks.withType<JavaCompile> {
-    options.encoding = "UTF-8"
 }
 
 application {
     mainModule.set("io.github.orizynpx.nodepad")
-    mainClass.set("io.github.orizynpx.nodepad.app.Launcher")
+    // In modular JavaFX, point to the class extending Application (Main), not Launcher
+    mainClass.set("io.github.orizynpx.nodepad.app.Main")
 }
 
 javafx {
@@ -36,17 +36,42 @@ javafx {
 }
 
 dependencies {
-    testImplementation("org.junit.jupiter:junit-jupiter-api:${junitVersion}")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitVersion}")
     implementation("org.xerial:sqlite-jdbc:3.45.1.0")
     implementation("org.fxmisc.richtext:richtextfx:0.11.0")
-    // JSON Parsing (This is what you are missing)
     implementation("com.google.code.gson:gson:2.10.1")
-
-    // Network
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
+
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.10.2")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.10.2")
 }
 
-tasks.withType<Test> {
-    useJUnitPlatform()
+jlink {
+    imageZip.set(project.file("${buildDir}/distributions/app-${javafx.platform.classifier}.zip"))
+    options.set(listOf("--strip-debug", "--compress", "2", "--no-header-files", "--no-man-pages"))
+
+    launcher {
+        name = "Nodepad"
+    }
+
+    // MERGE LIST:
+    // We must merge ALL non-modular jars.
+    // 1. SQLite
+    // 2. OkHttp + its children (Okio, Kotlin Stdlib)
+    // 3. RichTextFX + its children (ReactFX, Flowless, UndoFX, WellBehavedFX)
+    forceMerge(
+        "sqlite-jdbc",
+        "okhttp", "okio", "kotlin",
+        "richtextfx", "reactfx", "flowless", "undofx", "wellbehavedfx"
+    )
+
+    jpackage {
+        installerType = "exe"
+        installerOptions.addAll(listOf(
+            "--win-per-user-install",
+            "--win-dir-chooser",
+            "--win-menu",
+            "--win-shortcut",
+            "--dest", "${buildDir}/installer"
+        ))
+    }
 }
