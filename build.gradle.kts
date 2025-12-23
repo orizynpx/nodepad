@@ -27,7 +27,7 @@ tasks.withType<JavaCompile> {
 
 application {
     mainModule.set("io.github.orizynpx.nodepad")
-    mainClass.set("io.github.orizynpx.nodepad.app.Launcher")
+    mainClass.set("io.github.orizynpx.nodepad.Launcher")
 }
 
 javafx {
@@ -40,10 +40,7 @@ dependencies {
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitVersion}")
     implementation("org.xerial:sqlite-jdbc:3.45.1.0")
     implementation("org.fxmisc.richtext:richtextfx:0.11.0")
-    // JSON Parsing (This is what you are missing)
     implementation("com.google.code.gson:gson:2.10.1")
-
-    // Network
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
 }
 

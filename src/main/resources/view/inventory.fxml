@@ -6,7 +6,7 @@
 <?import javafx.scene.layout.VBox?>
 
 <VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="io.github.orizynpx.nodepad.controller.InventoryController"
+      fx:controller="io.github.orizynpx.nodepad.ui.controller.InventoryController"
       style="-fx-background-color: #1e1e1e; -fx-padding: 20;" spacing="20">
 
     <Label text="SKILL LIBRARY" style="-fx-text-fill: #00ffff; -fx-font-size: 28; -fx-font-weight: bold;"/>

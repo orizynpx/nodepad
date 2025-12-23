@@ -9,7 +9,7 @@
 
 <VBox spacing="20" style="-fx-background-color: #1e1e1e; -fx-padding: 40;"
       xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="io.github.orizynpx.nodepad.controller.DashboardController">
+      fx:controller="io.github.orizynpx.nodepad.ui.controller.DashboardController">
 
     <Label text="DASHBOARD" style="-fx-text-fill: white; -fx-font-size: 32; -fx-font-weight: bold;"/>
 
