@@ -17,8 +17,8 @@ public class DashboardController {
 
     private final FileRepository fileRepository;
 
-    public DashboardController() {
-        this.fileRepository = ServiceRegistry.getInstance().getFileRepository();
+    public DashboardController(FileRepository fileRepo) {
+        this.fileRepository = fileRepo;
     }
 
     public void setMainController(MainController mainController) {

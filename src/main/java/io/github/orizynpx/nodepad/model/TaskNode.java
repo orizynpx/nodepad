@@ -1,8 +1,8 @@
 package io.github.orizynpx.nodepad.model;
 
-import io.github.orizynpx.nodepad.model.NodeStatus; // Ensure you import your existing Enum
+import io.github.orizynpx.nodepad.model.NodeStatus;
 
-public class TaskNode extends BaseNode implements Renderable {
+public class TaskNode extends BaseNode {
 
     private String description = "";
     private NodeStatus status;
@@ -24,17 +24,6 @@ public class TaskNode extends BaseNode implements Renderable {
     @Override
     public String getType() {
         return "TASK";
-    }
-
-    // --- INTERFACE IMPLEMENTATION ---
-    @Override
-    public String getDisplayColor() {
-        if (status == null) return "#333333";
-        return switch (status) {
-            case DONE -> "#00ff99";   // Green
-            case UNLOCKED -> "#ffd700"; // Gold
-            default -> "#333333";     // Grey
-        };
     }
 
     // --- Getters & Setters (Required by ParserService) ---
