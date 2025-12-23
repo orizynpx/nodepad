@@ -8,7 +8,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Scanner;
 
-public class DatabaseManager implements ConnectionFactory {
+public class DatabaseManager implements DatabaseFactory {
 
     private static final String DB_URL = "jdbc:sqlite:nodepad.db";
 

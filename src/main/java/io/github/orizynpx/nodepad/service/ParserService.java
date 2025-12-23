@@ -1,9 +1,9 @@
 package io.github.orizynpx.nodepad.service;
 
-import io.github.orizynpx.nodepad.model.Edge;
-import io.github.orizynpx.nodepad.model.GraphModel;
-import io.github.orizynpx.nodepad.model.TaskNode; // Updated to TaskNode
-import io.github.orizynpx.nodepad.model.NodeStatus;
+import io.github.orizynpx.nodepad.model.graph.Edge;
+import io.github.orizynpx.nodepad.model.graph.GraphModel;
+import io.github.orizynpx.nodepad.model.graph.TaskNode; // Updated to TaskNode
+import io.github.orizynpx.nodepad.model.enums.NodeStatus;
 
 import java.util.*;
 import java.util.regex.Matcher;

@@ -1,4 +1,6 @@
-package io.github.orizynpx.nodepad.dao;
+package io.github.orizynpx.nodepad.dao.impl;
+
+import io.github.orizynpx.nodepad.dao.ContentRepository;
 
 import java.io.File;
 import java.io.IOException;

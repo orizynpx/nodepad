@@ -2,9 +2,9 @@ package io.github.orizynpx.nodepad.controller;
 
 import io.github.orizynpx.nodepad.dao.BookRepository;
 import io.github.orizynpx.nodepad.dao.LinkRepository;
-import io.github.orizynpx.nodepad.model.BookMetadata;
-import io.github.orizynpx.nodepad.model.LinkMetadata;
-import io.github.orizynpx.nodepad.model.SharedProjectModel;
+import io.github.orizynpx.nodepad.model.entity.BookMetadata;
+import io.github.orizynpx.nodepad.model.entity.LinkMetadata;
+import io.github.orizynpx.nodepad.model.entity.SharedProjectModel;
 import io.github.orizynpx.nodepad.view.ImageCache;
 import javafx.collections.SetChangeListener;
 import javafx.fxml.FXML;

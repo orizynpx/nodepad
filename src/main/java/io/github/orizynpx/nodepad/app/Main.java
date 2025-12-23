@@ -3,7 +3,7 @@ package io.github.orizynpx.nodepad.app;
 import io.github.orizynpx.nodepad.controller.DashboardController;
 import io.github.orizynpx.nodepad.controller.InventoryController;
 import io.github.orizynpx.nodepad.controller.WorkshopController;
-import io.github.orizynpx.nodepad.model.SharedProjectModel;
+import io.github.orizynpx.nodepad.model.entity.SharedProjectModel;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;

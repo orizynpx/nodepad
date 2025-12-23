@@ -1,6 +1,6 @@
 package io.github.orizynpx.nodepad.dao;
 
-import io.github.orizynpx.nodepad.model.BookMetadata;
+import io.github.orizynpx.nodepad.model.entity.BookMetadata;
 import java.util.List;
 import java.util.Optional;
 

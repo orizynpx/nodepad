@@ -2,14 +2,14 @@ package io.github.orizynpx.nodepad.controller;
 
 import io.github.orizynpx.nodepad.dao.ContentRepository;
 import io.github.orizynpx.nodepad.dao.FileRepository;
-import io.github.orizynpx.nodepad.model.GraphModel;
-import io.github.orizynpx.nodepad.model.SharedProjectModel;
-import io.github.orizynpx.nodepad.model.TaskNode;
+import io.github.orizynpx.nodepad.model.graph.GraphModel;
+import io.github.orizynpx.nodepad.model.entity.SharedProjectModel;
+import io.github.orizynpx.nodepad.model.graph.TaskNode;
 import io.github.orizynpx.nodepad.service.ParserService;
-import io.github.orizynpx.nodepad.service.TaskMutatorService;
+import io.github.orizynpx.nodepad.service.TaskService;
 import io.github.orizynpx.nodepad.view.EditorFactory;
-import io.github.orizynpx.nodepad.view.GraphOverlayBuilder;
-import io.github.orizynpx.nodepad.view.GraphRenderer;
+import io.github.orizynpx.nodepad.view.renderer.GraphOverlayBuilder;
+import io.github.orizynpx.nodepad.view.renderer.GraphRenderer;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
@@ -35,7 +35,7 @@ public class WorkshopController {
     private GraphOverlayBuilder overlayBuilder;
 
     private final ParserService parserService;
-    private final TaskMutatorService taskMutatorService;
+    private final TaskService taskService;
     private final ContentRepository contentRepository;
     private final FileRepository fileRepository;
     private final SharedProjectModel projectModel; // Injected
@@ -44,12 +44,12 @@ public class WorkshopController {
     private File currentFile;
 
     public WorkshopController(ParserService parser,
-                              TaskMutatorService mutator,
+                              TaskService mutator,
                               ContentRepository contentRepo,
                               FileRepository fileRepo,
                               SharedProjectModel projectModel) {
         this.parserService = parser;
-        this.taskMutatorService = mutator;
+        this.taskService = mutator;
         this.contentRepository = contentRepo;
         this.fileRepository = fileRepo;
         this.projectModel = projectModel;
@@ -149,7 +149,7 @@ public class WorkshopController {
 
     private void toggleTask(String nodeId) {
         String currentText = codeArea.getText();
-        String newText = taskMutatorService.toggleTaskStatus(currentText, currentModel, nodeId);
+        String newText = taskService.toggleTaskStatus(currentText, currentModel, nodeId);
         if (!newText.equals(currentText)) {
             codeArea.replaceText(newText);
         }

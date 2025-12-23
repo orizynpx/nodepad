@@ -1,4 +1,4 @@
-package io.github.orizynpx.nodepad.model;
+package io.github.orizynpx.nodepad.model.enums;
 
 public enum NodeStatus {
     LOCKED,   // Dependencies not met (Grey)

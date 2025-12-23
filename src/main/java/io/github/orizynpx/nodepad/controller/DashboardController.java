@@ -1,7 +1,7 @@
 package io.github.orizynpx.nodepad.controller;
 
 import io.github.orizynpx.nodepad.dao.FileRepository;
-import io.github.orizynpx.nodepad.model.FileRecord;
+import io.github.orizynpx.nodepad.model.entity.FileRecord;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.input.MouseButton;

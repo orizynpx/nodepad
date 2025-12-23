@@ -1,4 +1,4 @@
-package io.github.orizynpx.nodepad.model;
+package io.github.orizynpx.nodepad.model.entity;
 
 public class BookMetadata {
     private String isbn;

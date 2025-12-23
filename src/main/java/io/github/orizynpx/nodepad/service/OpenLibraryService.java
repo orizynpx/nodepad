@@ -3,7 +3,7 @@ package io.github.orizynpx.nodepad.service;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.github.orizynpx.nodepad.dao.BookRepository;
-import io.github.orizynpx.nodepad.model.BookMetadata;
+import io.github.orizynpx.nodepad.model.entity.BookMetadata;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;

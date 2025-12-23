@@ -1,4 +1,4 @@
-package io.github.orizynpx.nodepad.model;
+package io.github.orizynpx.nodepad.model.graph;
 
 import java.util.Objects;
 

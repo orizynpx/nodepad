@@ -1,12 +1,11 @@
 package io.github.orizynpx.nodepad.service;
 
 import io.github.orizynpx.nodepad.dao.LinkRepository;
-import io.github.orizynpx.nodepad.model.LinkMetadata;
+import io.github.orizynpx.nodepad.model.entity.LinkMetadata;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
-import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;

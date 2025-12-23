@@ -1,11 +1,14 @@
 package io.github.orizynpx.nodepad.app;
 
 import io.github.orizynpx.nodepad.dao.*;
+import io.github.orizynpx.nodepad.dao.impl.SqliteBookRepository;
+import io.github.orizynpx.nodepad.dao.impl.SqliteFileRepository;
+import io.github.orizynpx.nodepad.dao.impl.SqliteLinkRepository;
 import io.github.orizynpx.nodepad.service.LinkPreviewService;
 import io.github.orizynpx.nodepad.service.OpenLibraryService;
 import io.github.orizynpx.nodepad.service.ParserService;
-import io.github.orizynpx.nodepad.dao.FileContentRepository;
-import io.github.orizynpx.nodepad.service.TaskMutatorService;
+import io.github.orizynpx.nodepad.dao.impl.FileContentRepository;
+import io.github.orizynpx.nodepad.service.TaskService;
 
 public class ServiceRegistry {
     private static final ServiceRegistry INSTANCE = new ServiceRegistry();
@@ -19,20 +22,20 @@ public class ServiceRegistry {
     // SERVICES
     private final ParserService parserService;
     private final OpenLibraryService openLibraryService;
-    private final TaskMutatorService taskMutatorService;
+    private final TaskService taskService;
     private final LinkPreviewService linkPreviewService;
 
     private ServiceRegistry() {
         // CONCRETE IMPLEMENTATIONS (The only place using 'new')
-        ConnectionFactory connectionFactory = new DatabaseManager();
+        DatabaseFactory databaseFactory = new DatabaseManager();
 
-        this.fileRepository = new SqliteFileDao(connectionFactory);
-        this.bookRepository = new SqliteBookDao(connectionFactory);
+        this.fileRepository = new SqliteFileRepository(databaseFactory);
+        this.bookRepository = new SqliteBookRepository(databaseFactory);
         this.contentRepository = new FileContentRepository();
         this.parserService = new ParserService();
         this.openLibraryService = new OpenLibraryService(this.bookRepository);
-        this.taskMutatorService = new TaskMutatorService();
-        this.linkRepository = new SqliteLinkDao(connectionFactory);
+        this.taskService = new TaskService();
+        this.linkRepository = new SqliteLinkRepository(databaseFactory);
         this.linkPreviewService = new LinkPreviewService(this.linkRepository);
     }
 
@@ -60,8 +63,8 @@ public class ServiceRegistry {
         return contentRepository;
     }
 
-    public TaskMutatorService getTaskMutatorService() {
-        return taskMutatorService;
+    public TaskService getTaskMutatorService() {
+        return taskService;
     }
 
     public OpenLibraryService getOpenLibraryService() {

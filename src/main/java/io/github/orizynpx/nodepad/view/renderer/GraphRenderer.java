@@ -1,6 +1,9 @@
-package io.github.orizynpx.nodepad.view;
+package io.github.orizynpx.nodepad.view.renderer;
 
-import io.github.orizynpx.nodepad.model.*;
+import io.github.orizynpx.nodepad.model.enums.NodeStatus;
+import io.github.orizynpx.nodepad.model.graph.Edge;
+import io.github.orizynpx.nodepad.model.graph.GraphModel;
+import io.github.orizynpx.nodepad.model.graph.TaskNode;
 import javafx.geometry.Point2D;
 import javafx.scene.Cursor;
 import javafx.scene.Group;

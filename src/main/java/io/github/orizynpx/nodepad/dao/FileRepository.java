@@ -1,6 +1,6 @@
 package io.github.orizynpx.nodepad.dao;
 
-import io.github.orizynpx.nodepad.model.FileRecord;
+import io.github.orizynpx.nodepad.model.entity.FileRecord;
 import java.util.List;
 
 public interface FileRepository {

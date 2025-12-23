@@ -4,6 +4,6 @@ import java.sql.Connection;
 import java.sql.SQLException;
 
 @FunctionalInterface
-public interface ConnectionFactory {
+public interface DatabaseFactory {
     Connection connect() throws SQLException;
 }

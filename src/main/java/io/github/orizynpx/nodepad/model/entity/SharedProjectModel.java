@@ -1,4 +1,4 @@
-package io.github.orizynpx.nodepad.model;
+package io.github.orizynpx.nodepad.model.entity;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableSet;

@@ -1,6 +1,6 @@
-package io.github.orizynpx.nodepad.model;
+package io.github.orizynpx.nodepad.model.graph;
 
-import io.github.orizynpx.nodepad.model.NodeStatus;
+import io.github.orizynpx.nodepad.model.enums.NodeStatus;
 
 public class TaskNode extends BaseNode {
 

@@ -1,4 +1,4 @@
-package io.github.orizynpx.nodepad.model;
+package io.github.orizynpx.nodepad.model.graph;
 
 public class Edge {
     private String sourceId; // The dependency (must be done first)

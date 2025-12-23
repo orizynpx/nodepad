@@ -1,10 +1,10 @@
 package io.github.orizynpx.nodepad.service;
 
-import io.github.orizynpx.nodepad.model.Edge;
-import io.github.orizynpx.nodepad.model.GraphModel;
+import io.github.orizynpx.nodepad.model.graph.Edge;
+import io.github.orizynpx.nodepad.model.graph.GraphModel;
 import java.util.*;
 
-public class TaskMutatorService {
+public class TaskService {
 
     /**
      * Toggles the @done status of a node in the raw text.

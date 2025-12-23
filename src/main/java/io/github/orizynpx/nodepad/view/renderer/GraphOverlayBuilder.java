@@ -1,10 +1,10 @@
-package io.github.orizynpx.nodepad.view;
+package io.github.orizynpx.nodepad.view.renderer;
 
 import io.github.orizynpx.nodepad.app.ServiceRegistry;
-import io.github.orizynpx.nodepad.model.BookMetadata;
-import io.github.orizynpx.nodepad.model.LinkMetadata;
-import io.github.orizynpx.nodepad.model.NodeStatus;
-import io.github.orizynpx.nodepad.model.TaskNode;
+import io.github.orizynpx.nodepad.model.entity.BookMetadata;
+import io.github.orizynpx.nodepad.model.entity.LinkMetadata;
+import io.github.orizynpx.nodepad.model.enums.NodeStatus;
+import io.github.orizynpx.nodepad.model.graph.TaskNode;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.Cursor;

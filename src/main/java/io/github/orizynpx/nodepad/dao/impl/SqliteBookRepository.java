@@ -1,6 +1,8 @@
-package io.github.orizynpx.nodepad.dao;
+package io.github.orizynpx.nodepad.dao.impl;
 
-import io.github.orizynpx.nodepad.model.BookMetadata;
+import io.github.orizynpx.nodepad.dao.BookRepository;
+import io.github.orizynpx.nodepad.dao.DatabaseFactory;
+import io.github.orizynpx.nodepad.model.entity.BookMetadata;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -10,11 +12,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public class SqliteBookDao implements BookRepository {
-    private final ConnectionFactory connectionFactory;
+public class SqliteBookRepository implements BookRepository {
+    private final DatabaseFactory databaseFactory;
 
-    public SqliteBookDao(ConnectionFactory connectionFactory) {
-        this.connectionFactory = connectionFactory;
+    public SqliteBookRepository(DatabaseFactory databaseFactory) {
+        this.databaseFactory = databaseFactory;
     }
 
     @Override
@@ -24,7 +26,7 @@ public class SqliteBookDao implements BookRepository {
         System.out.println(">>> ATTEMPTING TO SAVE BOOK: " + book.getIsbn());
 
         try (
-                Connection conn = connectionFactory.connect();
+                Connection conn = databaseFactory.connect();
                 PreparedStatement pstmt = conn.prepareStatement(sql)
         ) {
 
@@ -46,7 +48,7 @@ public class SqliteBookDao implements BookRepository {
     @Override
     public Optional<BookMetadata> findByIsbn(String isbn) {
         String sql = "SELECT * FROM api_cache WHERE isbn = ?";
-        try (Connection conn = connectionFactory.connect();
+        try (Connection conn = databaseFactory.connect();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             pstmt.setString(1, isbn);
@@ -69,7 +71,7 @@ public class SqliteBookDao implements BookRepository {
     public List<BookMetadata> findAll() {
         List<BookMetadata> books = new ArrayList<>();
         String sql = "SELECT * FROM api_cache ORDER BY fetched_at DESC";
-        try (Connection conn = connectionFactory.connect();
+        try (Connection conn = databaseFactory.connect();
              PreparedStatement pstmt = conn.prepareStatement(sql);
              ResultSet rs = pstmt.executeQuery()) {
 
@@ -89,7 +91,7 @@ public class SqliteBookDao implements BookRepository {
 
     public void delete(String isbn) {
         String sql = "DELETE FROM api_cache WHERE isbn = ?";
-        try (Connection conn = connectionFactory.connect();
+        try (Connection conn = databaseFactory.connect();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, isbn);
             pstmt.executeUpdate();
