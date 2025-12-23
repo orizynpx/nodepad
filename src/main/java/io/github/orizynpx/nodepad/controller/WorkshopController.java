@@ -10,6 +10,7 @@ import io.github.orizynpx.nodepad.service.TaskService;
 import io.github.orizynpx.nodepad.view.EditorFactory;
 import io.github.orizynpx.nodepad.view.renderer.GraphOverlayBuilder;
 import io.github.orizynpx.nodepad.view.renderer.GraphRenderer;
+import io.github.orizynpx.nodepad.view.renderer.layout.HierarchicalLayout;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
@@ -38,7 +39,7 @@ public class WorkshopController {
     private final TaskService taskService;
     private final ContentRepository contentRepository;
     private final FileRepository fileRepository;
-    private final SharedProjectModel projectModel; // Injected
+    private final SharedProjectModel projectModel;
 
     private GraphModel currentModel;
     private File currentFile;
@@ -74,7 +75,7 @@ public class WorkshopController {
 
         // 2. UI Builder & Renderer Setup
         this.overlayBuilder = new GraphOverlayBuilder(this::toggleTask);
-        this.renderer = new GraphRenderer();
+        this.renderer = new GraphRenderer(new HierarchicalLayout());
         this.renderer.setOverlayProvider(overlayBuilder::createOverlay);
         graphContainer.getChildren().add(renderer);
 
