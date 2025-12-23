@@ -13,20 +13,20 @@ import io.github.orizynpx.nodepad.service.TaskService;
 public class ServiceRegistry {
     private static final ServiceRegistry INSTANCE = new ServiceRegistry();
 
-    // INTERFACES (Abstractions)
+    // Interfaces (abstractions)
     private final FileRepository fileRepository;
     private final BookRepository bookRepository;
     private final ContentRepository contentRepository;
     private final LinkRepository linkRepository;
 
-    // SERVICES
+    // Services
     private final ParserService parserService;
     private final OpenLibraryService openLibraryService;
     private final TaskService taskService;
     private final LinkPreviewService linkPreviewService;
 
     private ServiceRegistry() {
-        // CONCRETE IMPLEMENTATIONS (The only place using 'new')
+        // Concrete
         DatabaseFactory databaseFactory = new DatabaseManager();
 
         this.fileRepository = new SqliteFileRepository(databaseFactory);

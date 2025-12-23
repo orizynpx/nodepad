@@ -7,6 +7,4 @@ import java.util.Optional;
 public interface BookRepository {
     void save(BookMetadata book);
     Optional<BookMetadata> findByIsbn(String isbn);
-    List<BookMetadata> findAll();
-    void delete(String isbn);
 }

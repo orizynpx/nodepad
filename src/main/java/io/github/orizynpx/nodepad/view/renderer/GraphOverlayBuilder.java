@@ -1,10 +1,11 @@
 package io.github.orizynpx.nodepad.view.renderer;
 
-import io.github.orizynpx.nodepad.app.ServiceRegistry;
 import io.github.orizynpx.nodepad.model.entity.BookMetadata;
 import io.github.orizynpx.nodepad.model.entity.LinkMetadata;
 import io.github.orizynpx.nodepad.model.enums.NodeStatus;
 import io.github.orizynpx.nodepad.model.graph.TaskNode;
+import io.github.orizynpx.nodepad.service.LinkPreviewService;
+import io.github.orizynpx.nodepad.service.OpenLibraryService;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.Cursor;
@@ -20,9 +21,15 @@ import java.util.function.Consumer;
 public class GraphOverlayBuilder {
 
     private final Consumer<String> statusToggleAction;
+    private final OpenLibraryService openLibraryService;
+    private final LinkPreviewService linkPreviewService;
 
-    public GraphOverlayBuilder(Consumer<String> statusToggleAction) {
+    public GraphOverlayBuilder(Consumer<String> statusToggleAction,
+                               OpenLibraryService openLibraryService,
+                               LinkPreviewService linkPreviewService) {
         this.statusToggleAction = statusToggleAction;
+        this.openLibraryService = openLibraryService;
+        this.linkPreviewService = linkPreviewService;
     }
 
     public Node createOverlay(TaskNode node, Runnable closeCallback) {
@@ -45,14 +52,12 @@ public class GraphOverlayBuilder {
             overlay.getChildren().add(desc);
         }
 
-        // --- Async Fetching Logic ---
         if (node.getIsbn() != null) {
             Label loading = new Label("Fetching Book Data...");
             loading.getStyleClass().add("overlay-loading");
             overlay.getChildren().add(loading);
 
-            ServiceRegistry.getInstance().getOpenLibraryService()
-                    .fetchBookInfo(node.getIsbn())
+            openLibraryService.fetchBookInfo(node.getIsbn())
                     .thenAccept(book -> Platform.runLater(() -> {
                         overlay.getChildren().remove(loading);
                         if (book != null) {
@@ -70,8 +75,7 @@ public class GraphOverlayBuilder {
             loading.getStyleClass().add("overlay-loading-link");
             overlay.getChildren().add(loading);
 
-            ServiceRegistry.getInstance().getLinkPreviewService()
-                    .fetchPreview(node.getUrl())
+            linkPreviewService.fetchPreview(node.getUrl())
                     .thenAccept(meta -> Platform.runLater(() -> {
                         overlay.getChildren().remove(loading);
                         if (meta != null) {
@@ -80,7 +84,6 @@ public class GraphOverlayBuilder {
                     }));
         }
 
-        // --- Action Buttons ---
         Button btn = new Button();
         btn.setMaxWidth(Double.MAX_VALUE);
 
@@ -110,19 +113,14 @@ public class GraphOverlayBuilder {
     private VBox createBookEmbed(BookMetadata book) {
         VBox embed = new VBox(5);
         embed.getStyleClass().add("embed-box-book");
-
         Label lbl = new Label("LIBRARY REFERENCE");
         lbl.getStyleClass().add("embed-label-ref");
-
         Label title = new Label(book.getTitle());
         title.getStyleClass().add("embed-title");
         title.setWrapText(true);
-
         Label isbn = new Label("ISBN: " + book.getIsbn());
         isbn.getStyleClass().add("embed-subtitle");
-
         embed.getChildren().addAll(lbl, title, isbn);
-
         if (book.getImageUrl() != null && !book.getImageUrl().isEmpty()) {
             try {
                 ImageView img = new ImageView(new Image(book.getImageUrl(), true));
@@ -130,7 +128,8 @@ public class GraphOverlayBuilder {
                 img.setFitWidth(80);
                 img.setPreserveRatio(true);
                 embed.getChildren().add(img);
-            } catch (Exception ignored) { }
+            } catch (Exception ignored) {
+            }
         }
         return embed;
     }
@@ -138,17 +137,13 @@ public class GraphOverlayBuilder {
     private VBox createLinkEmbed(LinkMetadata meta) {
         VBox embed = new VBox(5);
         embed.getStyleClass().add("embed-box-link");
-
         Label title = new Label(meta.getTitle());
         title.getStyleClass().add("embed-link-title");
-
         Label desc = new Label(meta.getDescription());
         desc.getStyleClass().add("embed-link-desc");
         desc.setWrapText(true);
         desc.setMaxWidth(250);
-
         embed.getChildren().addAll(title, desc);
-
         if (meta.getImageUrl() != null && !meta.getImageUrl().isEmpty()) {
             try {
                 ImageView img = new ImageView(new Image(meta.getImageUrl(), true));
@@ -156,7 +151,8 @@ public class GraphOverlayBuilder {
                 img.setFitWidth(200);
                 img.setPreserveRatio(true);
                 embed.getChildren().add(img);
-            } catch (Exception ignored) { }
+            } catch (Exception ignored) {
+            }
         }
         return embed;
     }

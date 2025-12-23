@@ -26,7 +26,7 @@ public class Main extends Application {
                     return new InventoryController(
                             ServiceRegistry.getInstance().getBookRepository(),
                             ServiceRegistry.getInstance().getLinkRepository(),
-                            sharedModel // Inject Shared Model
+                            sharedModel
                     );
                 }
                 if (type == DashboardController.class) {
@@ -40,7 +40,9 @@ public class Main extends Application {
                             ServiceRegistry.getInstance().getTaskMutatorService(),
                             ServiceRegistry.getInstance().getContentRepository(),
                             ServiceRegistry.getInstance().getFileRepository(),
-                            sharedModel // Inject Shared Model
+                            sharedModel,
+                            ServiceRegistry.getInstance().getOpenLibraryService(),
+                            ServiceRegistry.getInstance().getLinkPreviewService()
                     );
                 }
                 // Default

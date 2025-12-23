@@ -11,7 +11,6 @@ public abstract class BaseNode {
         this.label = label;
     }
 
-    // Abstract method forcing child classes to define their type
     public abstract String getType();
 
     public String getId() {

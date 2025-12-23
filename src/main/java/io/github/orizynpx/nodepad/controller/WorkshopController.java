@@ -5,6 +5,8 @@ import io.github.orizynpx.nodepad.dao.FileRepository;
 import io.github.orizynpx.nodepad.model.graph.GraphModel;
 import io.github.orizynpx.nodepad.model.entity.SharedProjectModel;
 import io.github.orizynpx.nodepad.model.graph.TaskNode;
+import io.github.orizynpx.nodepad.service.LinkPreviewService;
+import io.github.orizynpx.nodepad.service.OpenLibraryService;
 import io.github.orizynpx.nodepad.service.ParserService;
 import io.github.orizynpx.nodepad.service.TaskService;
 import io.github.orizynpx.nodepad.view.EditorFactory;
@@ -28,8 +30,10 @@ import java.util.Set;
 
 public class WorkshopController {
 
-    @FXML private StackPane editorContainer;
-    @FXML private StackPane graphContainer;
+    @FXML
+    private StackPane editorContainer;
+    @FXML
+    private StackPane graphContainer;
 
     private CodeArea codeArea;
     private GraphRenderer renderer;
@@ -40,6 +44,8 @@ public class WorkshopController {
     private final ContentRepository contentRepository;
     private final FileRepository fileRepository;
     private final SharedProjectModel projectModel;
+    private final OpenLibraryService openLibraryService;
+    private final LinkPreviewService linkPreviewService;
 
     private GraphModel currentModel;
     private File currentFile;
@@ -48,12 +54,16 @@ public class WorkshopController {
                               TaskService mutator,
                               ContentRepository contentRepo,
                               FileRepository fileRepo,
-                              SharedProjectModel projectModel) {
+                              SharedProjectModel projectModel,
+                              OpenLibraryService openLibraryService,
+                              LinkPreviewService linkPreviewService) {
         this.parserService = parser;
         this.taskService = mutator;
         this.contentRepository = contentRepo;
         this.fileRepository = fileRepo;
         this.projectModel = projectModel;
+        this.openLibraryService = openLibraryService;
+        this.linkPreviewService = linkPreviewService;
     }
 
     public void setCurrentFile(File file) {
@@ -73,17 +83,18 @@ public class WorkshopController {
         StackPane.setMargin(saveBtn, new Insets(10));
         editorContainer.getChildren().add(saveBtn);
 
-        // 2. UI Builder & Renderer Setup
-        this.overlayBuilder = new GraphOverlayBuilder(this::toggleTask);
+        // Setup for UI builder and renderer
+        this.overlayBuilder = new GraphOverlayBuilder(
+                this::toggleTask,
+                this.openLibraryService,
+                this.linkPreviewService
+        );
         this.renderer = new GraphRenderer(new HierarchicalLayout());
         this.renderer.setOverlayProvider(overlayBuilder::createOverlay);
         graphContainer.getChildren().add(renderer);
 
-        // 3. Default Content
-        String defaultText = """
-                Project: RPG Roadmap
-                - Learn C# Basics @id(c_sharp) @done
-                """; // Shortened for brevity
+        // Default content
+        String defaultText = "";
 
         Platform.runLater(() -> {
             if (codeArea.getText().isEmpty()) {
@@ -111,7 +122,9 @@ public class WorkshopController {
                 contentRepository.saveContent(currentFile, content);
                 fileRepository.addOrUpdateFile(currentFile.getAbsolutePath());
                 System.out.println("File saved: " + currentFile.getAbsolutePath());
-            } catch (IOException e) { e.printStackTrace(); }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -144,7 +157,7 @@ public class WorkshopController {
                 if (node.getUrl() != null) urls.add(node.getUrl());
             }
         }
-        // Push to Shared Model -> Updates Inventory Automatically
+        // Push to shared model to update inventory automatically
         projectModel.updateContext(isbns, urls);
     }
 

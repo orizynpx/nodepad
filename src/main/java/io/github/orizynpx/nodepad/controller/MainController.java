@@ -12,9 +12,12 @@ import java.io.File;
 import java.io.IOException;
 
 public class MainController {
-    @FXML private StackPane contentArea;
-    @FXML private Button btnWorkshop;
-    @FXML private Button btnInventory;
+    @FXML
+    private StackPane contentArea;
+    @FXML
+    private Button btnWorkshop;
+    @FXML
+    private Button btnInventory;
 
     private Parent dashboardView;
     private Parent workshopView;
@@ -22,7 +25,6 @@ public class MainController {
 
     private DashboardController dashboardController;
     private WorkshopController workshopController;
-    private InventoryController inventoryController;
 
     @FXML
     public void initialize() {
@@ -36,10 +38,7 @@ public class MainController {
         try {
             if (dashboardView == null) {
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/dashboard.fxml"));
-
-                // --- FIX: Use the Factory from Main ---
                 loader.setControllerFactory(Main.getControllerFactory());
-
                 dashboardView = loader.load();
                 dashboardController = loader.getController();
                 dashboardController.setMainController(this);
@@ -66,14 +65,9 @@ public class MainController {
         try {
             if (inventoryView == null) {
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/inventory.fxml"));
-
-                // --- FIX: Use the Factory from Main ---
                 loader.setControllerFactory(Main.getControllerFactory());
-
                 inventoryView = loader.load();
-                inventoryController = loader.getController();
             }
-
             contentArea.getChildren().setAll(inventoryView);
         } catch (IOException e) {
             e.printStackTrace();
@@ -84,9 +78,7 @@ public class MainController {
         try {
             if (workshopView == null) {
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/workshop.fxml"));
-
                 loader.setControllerFactory(Main.getControllerFactory());
-
                 workshopView = loader.load();
                 this.workshopController = loader.getController();
             }
@@ -95,10 +87,13 @@ public class MainController {
             btnInventory.setDisable(false);
 
             if (file != null) {
+                // If we're opening an existing file
                 workshopController.setCurrentFile(file);
                 String content = ServiceRegistry.getInstance().getContentRepository().loadContent(file);
                 workshopController.loadContent(content);
             } else {
+                // If it's a new project
+                // We must explicitly reset the content, otherwise the old text remains
                 workshopController.setCurrentFile(null);
             }
 

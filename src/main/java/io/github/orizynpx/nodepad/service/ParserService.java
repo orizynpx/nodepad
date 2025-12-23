@@ -22,10 +22,9 @@ public class ParserService {
         if (text == null || text.isBlank()) return graph;
 
         String[] lines = text.split("\\R");
-        // UPDATED: Map stores TaskNode
+
         Map<String, TaskNode> nodeMap = new LinkedHashMap<>();
 
-        // --- PASS 1: NODES (Capture Order) ---
         TaskNode lastNode = null;
         int lineCounter = 0;
 
@@ -34,7 +33,6 @@ public class ParserService {
             if (idMatcher.find()) {
                 String id = idMatcher.group(1).trim();
 
-                // UPDATED: Instantiate TaskNode
                 TaskNode node = new TaskNode(id);
                 node.setIndex(lineCounter++);
 
@@ -50,7 +48,6 @@ public class ParserService {
             }
         }
 
-        // --- PASS 2: EDGES ---
         List<Edge> edges = new ArrayList<>();
         Set<String> existingEdges = new HashSet<>();
 
@@ -92,7 +89,6 @@ public class ParserService {
         return graph;
     }
 
-    // UPDATED: Signature uses TaskNode
     private void calculateStatuses(Map<String, TaskNode> nodeMap, List<Edge> edges) {
         Map<String, List<String>> incoming = new HashMap<>();
         for (Edge edge : edges) {

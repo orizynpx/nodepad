@@ -15,23 +15,11 @@ public class FileRecord {
         return filePath;
     }
 
-    public void setFilePath(String filePath) {
-        this.filePath = filePath;
-    }
-
     public long getLastOpened() {
         return lastOpened;
     }
 
-    public void setLastOpened(long lastOpened) {
-        this.lastOpened = lastOpened;
-    }
-
     public boolean isPinned() {
         return isPinned;
-    }
-
-    public void setPinned(boolean pinned) {
-        isPinned = pinned;
     }
 }

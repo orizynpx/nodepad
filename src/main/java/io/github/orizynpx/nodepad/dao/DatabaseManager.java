@@ -15,7 +15,7 @@ public class DatabaseManager implements DatabaseFactory {
     public DatabaseManager() {
         System.out.println(">>> ACTIVE DATABASE PATH: " + new java.io.File("nodepad.db").getAbsolutePath());
 
-        // Load Driver
+        // Load Ddiver
         try {
             Class.forName("org.sqlite.JDBC");
         } catch (ClassNotFoundException e) {
@@ -23,7 +23,7 @@ public class DatabaseManager implements DatabaseFactory {
             e.printStackTrace();
         }
 
-        // Initialize Tables automatically on startup
+        // Initialize tables automatically on startup
         initSchema();
     }
 

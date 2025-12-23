@@ -23,8 +23,7 @@ import java.util.Map;
 import java.util.function.BiFunction;
 
 public class GraphRenderer extends Pane {
-
-    // Visual Styling Constants
+    // Visual styling constants
     private static final double NODE_RADIUS = 15.0;
     private static final double BEZIER_OFFSET = 50.0;
 
@@ -33,11 +32,11 @@ public class GraphRenderer extends Pane {
     private Node activeOverlay;
     private final Group contentGroup = new Group();
 
-    // Panning State
+    // Panning state
     private double lastMouseX, lastMouseY;
     private boolean isDragging = false;
 
-    // CONSTRUCTOR INJECTION: We pass the strategy here
+    // We pass the strategy here, is called constructor injection
     public GraphRenderer(LayoutStrategy layoutStrategy) {
         this.layoutStrategy = layoutStrategy;
 
@@ -65,14 +64,14 @@ public class GraphRenderer extends Pane {
 
         if (graph.getNodes().isEmpty()) return;
 
-        // 1. DELEGATE MATH TO STRATEGY
+        // 1. Delegate math stuff to strategy
         Map<String, Point2D> positions = layoutStrategy.calculatePositions(graph);
 
         // Map nodes for quick lookup
         Map<String, TaskNode> nodeMap = new HashMap<>();
         for (TaskNode n : graph.getNodes()) nodeMap.put(n.getId(), n);
 
-        // 2. DRAW EDGES
+        // 2. Draw edges (lines connecting nodes)
         for (Edge e : graph.getEdges()) {
             if (positions.containsKey(e.getSourceId()) && positions.containsKey(e.getTargetId())) {
                 Point2D start = positions.get(e.getSourceId());
@@ -81,7 +80,7 @@ public class GraphRenderer extends Pane {
             }
         }
 
-        // 3. DRAW NODES
+        // 3. Draw nodes
         for (TaskNode node : graph.getNodes()) {
             if (!positions.containsKey(node.getId())) continue;
             Point2D pos = positions.get(node.getId());

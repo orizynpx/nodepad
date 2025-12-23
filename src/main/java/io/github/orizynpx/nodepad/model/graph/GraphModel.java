@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class GraphModel {
-    // Now holds TaskNode (which extends BaseNode)
     private List<TaskNode> nodes;
     private List<Edge> edges;
 

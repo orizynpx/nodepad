@@ -2,21 +2,17 @@ package io.github.orizynpx.nodepad.service;
 
 import io.github.orizynpx.nodepad.model.graph.Edge;
 import io.github.orizynpx.nodepad.model.graph.GraphModel;
+
 import java.util.*;
 
 public class TaskService {
-
-    /**
-     * Toggles the @done status of a node in the raw text.
-     * Handles Cascading Undo: If marking incomplete, recursively unchecks dependents.
-     */
     public String toggleTaskStatus(String currentText, GraphModel currentModel, String nodeId) {
         String targetTag = "@id(" + nodeId + ")";
         String doneTag = targetTag + " @done";
 
         if (currentText.contains(doneTag)) {
-            // --- CASE: UNCHECKING (Marking Incomplete) ---
-            // Must also uncheck any task that REQUIRES this one.
+            // Marking incomplete
+            // Must also uncheck any task that REQUIRES this one
             Set<String> nodesToReset = new HashSet<>();
             nodesToReset.add(nodeId);
 
@@ -33,7 +29,7 @@ public class TaskService {
             return newText;
 
         } else if (currentText.contains(targetTag)) {
-            // --- CASE: CHECKING (Marking Complete) ---
+            // Marking complete
             // Simple replace. Dependencies are checked by Parser logic, not Mutator.
             return currentText.replace(targetTag, doneTag);
         }
@@ -54,12 +50,13 @@ public class TaskService {
 
         while (!queue.isEmpty()) {
             String curr = queue.poll();
-            if (adj.containsKey(curr)) {
-                for (String child : adj.get(curr)) {
-                    if (!results.contains(child)) {
-                        results.add(child);
-                        queue.add(child);
-                    }
+            if (!adj.containsKey(curr)) {
+                return;
+            }
+            for (String child : adj.get(curr)) {
+                if (!results.contains(child)) {
+                    results.add(child);
+                    queue.add(child);
                 }
             }
         }

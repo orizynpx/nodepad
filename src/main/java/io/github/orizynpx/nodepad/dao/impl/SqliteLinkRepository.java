@@ -3,6 +3,7 @@ package io.github.orizynpx.nodepad.dao.impl;
 import io.github.orizynpx.nodepad.dao.DatabaseFactory;
 import io.github.orizynpx.nodepad.dao.LinkRepository;
 import io.github.orizynpx.nodepad.model.entity.LinkMetadata;
+
 import java.sql.*;
 import java.util.Optional;
 
@@ -24,7 +25,9 @@ public class SqliteLinkRepository implements LinkRepository {
             pstmt.setString(4, meta.getImageUrl());
             pstmt.setLong(5, System.currentTimeMillis());
             pstmt.executeUpdate();
-        } catch (SQLException e) { e.printStackTrace(); }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -40,7 +43,9 @@ public class SqliteLinkRepository implements LinkRepository {
                         rs.getString("description"), rs.getString("image_url")
                 ));
             }
-        } catch (SQLException e) { e.printStackTrace(); }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
         return Optional.empty();
     }
 }

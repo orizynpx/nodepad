@@ -19,7 +19,7 @@ public class OpenLibraryService {
     private final BookRepository bookRepository;
     private final OkHttpClient client = new OkHttpClient();
 
-    // PREVENT DUPLICATES: Keep track of what we are currently fetching
+    // Keep track of what we are currently fetching to prevent duplicates
     private final Set<String> pendingRequests = Collections.synchronizedSet(new HashSet<>());
 
     public OpenLibraryService(BookRepository bookRepository) {
@@ -27,29 +27,29 @@ public class OpenLibraryService {
     }
 
     public CompletableFuture<BookMetadata> fetchBookInfo(String rawIsbn) {
-        // 1. SANITIZE: Remove dashes to ensure consistent DB keys
+        // 1. Sanitize, remove dashes to ensure consistent DB keys
         String isbn = rawIsbn.replaceAll("[^0-9]", "");
 
         if (isbn.isEmpty()) return CompletableFuture.completedFuture(null);
 
         return CompletableFuture.supplyAsync(() -> {
-            // 2. CHECK DB CACHE
+            // 2. Check DB cache
             var cached = bookRepository.findByIsbn(isbn);
             if (cached.isPresent()) {
                 return cached.get();
             }
 
-            // 3. CHECK IN-FLIGHT REQUESTS
-            // If we are already fetching this ISBN, don't start a new request.
+            // 3. Check requests that are ongoing
+            // If we are already fetching this ISBN, don't start a new request
             if (pendingRequests.contains(isbn)) {
-                return null; // Or return a dummy "loading" object
+                return null;
             }
             pendingRequests.add(isbn);
 
             System.out.println("Cache Miss. Fetching API: " + isbn);
 
             try {
-                // 4. FETCH API
+                // 4. Fetch API
                 String url = "https://openlibrary.org/api/books?bibkeys=ISBN:" + isbn + "&jscmd=data&format=json";
                 Request request = new Request.Builder().url(url).build();
 

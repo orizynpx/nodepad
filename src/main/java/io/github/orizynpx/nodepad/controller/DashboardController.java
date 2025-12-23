@@ -14,8 +14,8 @@ import java.nio.file.Path;
 import java.util.Optional;
 
 public class DashboardController {
-
-    @FXML private ListView<FileRecord> recentFilesList;
+    @FXML
+    private ListView<FileRecord> recentFilesList;
 
     private MainController mainController;
     private final FileRepository fileRepository;
@@ -30,7 +30,6 @@ public class DashboardController {
 
     @FXML
     public void initialize() {
-        // 1. Custom Cell Factory with Context Menu
         recentFilesList.setCellFactory(param -> new ListCell<>() {
             @Override
             protected void updateItem(FileRecord item, boolean empty) {
@@ -39,13 +38,13 @@ public class DashboardController {
 
                 if (empty || item == null) {
                     setText(null);
-                    setContextMenu(null); // Clear menu for empty cells
+                    setContextMenu(null);
                     getStyleClass().add("recent-file-cell-empty");
                 } else {
                     setText(item.getFilePath());
                     getStyleClass().add("recent-file-cell-filled");
 
-                    // --- CONTEXT MENU FOR CRUD ---
+                    // For CRUD
                     ContextMenu menu = new ContextMenu();
 
                     MenuItem openItem = new MenuItem("Open");
@@ -67,13 +66,14 @@ public class DashboardController {
             }
         });
 
-        // 2. Single Click to Open (Check for PRIMARY button to allow Right-Click for context menu)
+        // Single click to open files
         recentFilesList.setOnMouseClicked(e -> {
-            if (e.getButton() == MouseButton.PRIMARY && e.getClickCount() == 1) {
-                FileRecord selected = recentFilesList.getSelectionModel().getSelectedItem();
-                if (selected != null) {
-                    openFile(new File(selected.getFilePath()));
-                }
+            if (!(e.getButton() == MouseButton.PRIMARY && e.getClickCount() == 1)) {
+                return;
+            }
+            FileRecord selected = recentFilesList.getSelectionModel().getSelectedItem();
+            if (selected != null) {
+                openFile(new File(selected.getFilePath()));
             }
         });
 
@@ -99,11 +99,11 @@ public class DashboardController {
 
             File newFile = new File(oldFile.getParent(), newName);
 
-            // 1. Rename on Disk
+            // Rename on disk
             boolean success = oldFile.renameTo(newFile);
 
             if (success) {
-                // 2. Update DB
+                // Update DB
                 fileRepository.updateFilePath(oldFile.getAbsolutePath(), newFile.getAbsolutePath());
                 refresh();
             } else {
@@ -144,9 +144,13 @@ public class DashboardController {
         recentFilesList.getItems().setAll(fileRepository.getRecentFiles());
     }
 
-    // ... (Keep handleNewFile, handleOpenFile, openFile logic same as before) ...
-    @FXML private void handleNewFile() { if (mainController != null) mainController.openWorkshop(null); }
-    @FXML private void handleOpenFile() {
+    @FXML
+    private void handleNewFile() {
+        if (mainController != null) mainController.openWorkshop(null);
+    }
+
+    @FXML
+    private void handleOpenFile() {
         FileChooser fileChooser = new FileChooser();
         fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Text Files", "*.txt"));
         File file = fileChooser.showOpenDialog(recentFilesList.getScene().getWindow());
@@ -157,7 +161,6 @@ public class DashboardController {
         if (!file.exists()) {
             Alert alert = new Alert(Alert.AlertType.ERROR, "File not found: " + file.getAbsolutePath());
             alert.showAndWait();
-            // Optional: Auto-remove dead link
             fileRepository.removeFileRecord(file.getAbsolutePath());
             refresh();
             return;

@@ -17,7 +17,6 @@ public class SqliteFileRepository implements FileRepository {
 
     @Override
     public void addOrUpdateFile(String filePath) {
-        // ... (Keep existing code) ...
         String sql = "INSERT OR REPLACE INTO recent_files(file_path, last_opened, is_pinned) VALUES(?, ?, COALESCE((SELECT is_pinned FROM recent_files WHERE file_path=?), 0))";
         try (Connection conn = databaseFactory.connect();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -30,7 +29,6 @@ public class SqliteFileRepository implements FileRepository {
 
     @Override
     public List<FileRecord> getRecentFiles() {
-        // ... (Keep existing code) ...
         List<FileRecord> files = new ArrayList<>();
         String sql = "SELECT * FROM recent_files ORDER BY last_opened DESC LIMIT 10";
         try (Connection conn = databaseFactory.connect();
@@ -46,8 +44,6 @@ public class SqliteFileRepository implements FileRepository {
         } catch (SQLException e) { e.printStackTrace(); }
         return files;
     }
-
-    // --- NEW IMPLEMENTATIONS ---
 
     @Override
     public void updateFilePath(String oldPath, String newPath) {

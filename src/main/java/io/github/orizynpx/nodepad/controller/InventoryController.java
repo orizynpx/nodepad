@@ -85,7 +85,6 @@ public class InventoryController {
         card.setAlignment(Pos.CENTER);
         card.setPrefSize(150, 220);
 
-        // REPLACED INLINE STYLE
         card.getStyleClass().add("card");
         if (isLink) {
             card.getStyleClass().add("card-link");

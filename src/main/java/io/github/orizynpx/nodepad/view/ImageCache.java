@@ -5,13 +5,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ImageCache {
-    // Static storage: Keeps images alive as long as the app runs
+    // Static storage, used to keep images alive as long as the app runs
     private static final Map<String, Image> cache = new HashMap<>();
 
     public static Image get(String url) {
         if (url == null || url.isEmpty()) return null;
 
-        // If we already have it, return it instantly (No network!)
+        // If we already have it, return it instantly
         if (cache.containsKey(url)) {
             return cache.get(url);
         }

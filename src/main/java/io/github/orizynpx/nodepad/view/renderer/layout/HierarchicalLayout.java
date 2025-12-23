@@ -24,7 +24,7 @@ public class HierarchicalLayout implements LayoutStrategy {
         Map<String, Point2D> positions = new HashMap<>();
         if (graph.getNodes().isEmpty()) return positions;
 
-        // 1. Data Prep
+        // 1. Preparing the data
         Map<String, TaskNode> nodeData = new HashMap<>();
         Map<String, Double> nodeWidths = new HashMap<>();
         Map<String, List<String>> childrenMap = new HashMap<>();
@@ -55,7 +55,7 @@ public class HierarchicalLayout implements LayoutStrategy {
         childrenMap.values().forEach(list ->
                 list.sort(Comparator.comparingInt(id -> nodeData.get(id).getIndex())));
 
-        // 3. Layout Components
+        // 3. Layout components
         List<Set<String>> components = findConnectedComponents(nodeData.keySet(), undirectedAdj);
         // Sort components by the index of their first node to keep order stable
         components.sort(Comparator.comparingInt(comp -> comp.stream()
@@ -72,7 +72,7 @@ public class HierarchicalLayout implements LayoutStrategy {
                 if (!hasParentInComp) compRoots.add(id);
             }
 
-            // Fallback for cycles: pick the node with lowest index
+            // Fallback for cycles, pick the node with lowest index
             if (compRoots.isEmpty() && !componentIds.isEmpty()) {
                 compRoots.add(componentIds.stream()
                         .min(Comparator.comparingInt(id -> nodeData.get(id).getIndex()))

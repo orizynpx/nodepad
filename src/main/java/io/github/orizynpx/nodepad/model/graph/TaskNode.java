@@ -10,13 +10,13 @@ public class TaskNode extends BaseNode {
     private String url;
     private int index; // Used for preserving order
 
-    // --- POLYMORPHISM: Constructor 1 (Detailed) ---
+    // Detailed
     public TaskNode(String id, String label, NodeStatus status) {
         super(id, label);
         this.status = status;
     }
 
-    // --- POLYMORPHISM: Constructor 2 (Minimal) ---
+    // Minimal
     public TaskNode(String id) {
         this(id, id, NodeStatus.LOCKED); // Defaults to ID as label and LOCKED status
     }
@@ -26,7 +26,7 @@ public class TaskNode extends BaseNode {
         return "TASK";
     }
 
-    // --- Getters & Setters (Required by ParserService) ---
+    // --- Getters & setters (used by ParserService) ---
 
     public String getDescription() {
         return description;

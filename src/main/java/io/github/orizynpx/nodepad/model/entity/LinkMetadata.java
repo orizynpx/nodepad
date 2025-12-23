@@ -13,7 +13,7 @@ public class LinkMetadata {
         this.imageUrl = imageUrl;
     }
 
-    // Getters
+    // Getter
     public String getUrl() {
         return url;
     }
