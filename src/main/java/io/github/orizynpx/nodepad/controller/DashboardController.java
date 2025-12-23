@@ -166,7 +166,9 @@ public class DashboardController {
             return;
         }
         fileRepository.addOrUpdateFile(file.getAbsolutePath());
-        if (mainController != null) mainController.openWorkshop(file);
+        if (mainController != null) {
+            mainController.openWorkshop(file);
+        }
     }
 
     public void refresh() {
