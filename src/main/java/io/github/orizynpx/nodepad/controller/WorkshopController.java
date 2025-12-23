@@ -1,10 +1,12 @@
 package io.github.orizynpx.nodepad.controller;
 
+import io.github.orizynpx.nodepad.app.ProjectContext;
 import io.github.orizynpx.nodepad.app.ServiceRegistry;
 import io.github.orizynpx.nodepad.dao.ContentRepository;
 import io.github.orizynpx.nodepad.dao.FileRepository;
 import io.github.orizynpx.nodepad.model.Edge;
 import io.github.orizynpx.nodepad.model.GraphModel;
+import io.github.orizynpx.nodepad.model.TaskNode;
 import io.github.orizynpx.nodepad.service.ParserService;
 import io.github.orizynpx.nodepad.service.TaskMutatorService;
 import io.github.orizynpx.nodepad.view.EditorFactory;
@@ -150,6 +152,23 @@ public class WorkshopController {
 
         currentModel = parserService.parse(text); // Store model for logic
         renderer.render(currentModel);
+
+        pushContextToInventory();
+    }
+
+    private void pushContextToInventory() {
+        Set<String> isbns = new HashSet<>();
+        Set<String> urls = new HashSet<>();
+
+        if (currentModel != null) {
+            for (TaskNode node : currentModel.getNodes()) {
+                if (node.getIsbn() != null) isbns.add(node.getIsbn());
+                if (node.getUrl() != null) urls.add(node.getUrl());
+            }
+        }
+
+        // Send to Shared State
+        ProjectContext.getInstance().updateContext(isbns, urls);
     }
 
     private void toggleTask(String nodeId) {

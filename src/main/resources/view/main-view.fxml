@@ -14,8 +14,8 @@
         <VBox spacing="10" style="-fx-background-color: #252525; -fx-padding: 20;">
             <Label text="NODEPAD" style="-fx-text-fill: white; -fx-font-size: 24; -fx-font-weight: bold;"/>
             <Button text="Dashboard" maxWidth="Infinity" onAction="#showDashboard"/>
-            <Button text="Workshop" maxWidth="Infinity" onAction="#showWorkshop"/>
-            <Button text="Inventory" maxWidth="Infinity" onAction="#showInventory"/>
+            <Button fx:id="btnWorkshop" text="Workshop" maxWidth="Infinity" onAction="#showWorkshop"/>
+            <Button fx:id="btnInventory" text="Inventory" maxWidth="Infinity" onAction="#showInventory"/>
         </VBox>
     </left>
 

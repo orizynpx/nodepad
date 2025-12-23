@@ -17,10 +17,16 @@ public class SqliteBookDao implements BookRepository {
         this.connectionFactory = connectionFactory;
     }
 
+    @Override
     public void save(BookMetadata book) {
         String sql = "INSERT OR REPLACE INTO api_cache(isbn, title, description, image_url, fetched_at) VALUES(?, ?, ?, ?, ?)";
-        try (Connection conn = connectionFactory.connect();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+        System.out.println(">>> ATTEMPTING TO SAVE BOOK: " + book.getIsbn());
+
+        try (
+                Connection conn = connectionFactory.connect();
+                PreparedStatement pstmt = conn.prepareStatement(sql)
+        ) {
 
             pstmt.setString(1, book.getIsbn());
             pstmt.setString(2, book.getTitle());
@@ -28,12 +34,16 @@ public class SqliteBookDao implements BookRepository {
             pstmt.setString(4, book.getImageUrl());
             pstmt.setLong(5, System.currentTimeMillis());
 
-            pstmt.executeUpdate();
+            int rows = pstmt.executeUpdate();
+
+            System.out.println(">>> SAVE SUCCESS. Rows affected: " + rows);
         } catch (SQLException e) {
+            System.err.println(">>> SQL ERROR SAVING BOOK:");
             e.printStackTrace();
         }
     }
 
+    @Override
     public Optional<BookMetadata> findByIsbn(String isbn) {
         String sql = "SELECT * FROM api_cache WHERE isbn = ?";
         try (Connection conn = connectionFactory.connect();

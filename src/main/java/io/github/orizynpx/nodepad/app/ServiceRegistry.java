@@ -48,6 +48,10 @@ public class ServiceRegistry {
         return bookRepository;
     }
 
+    public LinkRepository getLinkRepository() {
+        return linkRepository;
+    }
+
     public ParserService getParserService() {
         return parserService;
     }

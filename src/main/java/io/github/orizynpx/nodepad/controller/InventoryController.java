@@ -1,8 +1,12 @@
 package io.github.orizynpx.nodepad.controller;
 
+import io.github.orizynpx.nodepad.app.ProjectContext;
 import io.github.orizynpx.nodepad.app.ServiceRegistry;
 import io.github.orizynpx.nodepad.dao.BookRepository;
+import io.github.orizynpx.nodepad.dao.LinkRepository; // Import this
 import io.github.orizynpx.nodepad.model.BookMetadata;
+import io.github.orizynpx.nodepad.model.LinkMetadata; // Import this
+import io.github.orizynpx.nodepad.view.ImageCache;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
@@ -12,7 +16,8 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.TilePane;
 import javafx.scene.layout.VBox;
 
-import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 public class InventoryController {
 
@@ -21,63 +26,106 @@ public class InventoryController {
     @FXML
     private TilePane tilePane;
 
-    private BookRepository bookRepository;
+    private final BookRepository bookRepository;
+    private final LinkRepository linkRepository; // 1. Add Repository
 
     public InventoryController() {
         this.bookRepository = ServiceRegistry.getInstance().getBookRepository();
+        this.linkRepository = ServiceRegistry.getInstance().getLinkRepository(); // 2. Initialize it
     }
 
     @FXML
     public void initialize() {
-        // Improve ScrollPane speed
         scrollPane.setFitToWidth(true);
-        tilePane.setPrefColumns(3); // Responsive grid
-
-        loadBooks();
+        tilePane.setPrefColumns(3);
     }
 
-    private void loadBooks() {
+    public void refresh() {
         tilePane.getChildren().clear();
-        List<BookMetadata> books = bookRepository.findAll();
 
-        if (books.isEmpty()) {
-            Label emptyLabel = new Label("No books collected yet.\nAdd @isbn(number) in your workshop!");
-            emptyLabel.setStyle("-fx-text-fill: white; -fx-font-size: 16;");
+        // --- 1. RENDER BOOKS ---
+        Set<String> activeIsbns = ProjectContext.getInstance().getActiveIsbns();
+        for (String rawIsbn : activeIsbns) {
+            String cleanIsbn = rawIsbn.replaceAll("[^0-9]", "");
+            Optional<BookMetadata> bookOpt = bookRepository.findByIsbn(cleanIsbn);
+            if (bookOpt.isPresent()) {
+                tilePane.getChildren().add(createBookCard(bookOpt.get()));
+            }
+        }
+
+        // --- 2. RENDER LINKS (New Logic) ---
+        Set<String> activeUrls = ProjectContext.getInstance().getActiveUrls();
+
+        if (activeIsbns.isEmpty() && activeUrls.isEmpty()) {
+            Label emptyLabel = new Label("Inventory Empty.\nAdd @isbn(..) or @url(..) to your nodes.");
+            emptyLabel.setStyle("-fx-text-fill: #777; -fx-font-size: 14;");
             tilePane.getChildren().add(emptyLabel);
             return;
         }
 
-        for (BookMetadata book : books) {
-            tilePane.getChildren().add(createBookCard(book));
+        for (String url : activeUrls) {
+            Optional<LinkMetadata> linkOpt = linkRepository.findByUrl(url);
+            if (linkOpt.isPresent()) {
+                tilePane.getChildren().add(createLinkCard(linkOpt.get()));
+            } else {
+                // Optional: Show placeholder if it hasn't finished fetching yet
+            }
         }
     }
 
     private VBox createBookCard(BookMetadata book) {
+        // ... (Keep your existing book card logic) ...
+        return createGenericCard(book.getTitle(), "ISBN: " + book.getIsbn(), book.getImageUrl(), true);
+    }
+
+    // --- 3. CREATE LINK CARD ---
+    private VBox createLinkCard(LinkMetadata link) {
+        // Reusing a generic card builder or duplicating logic
+        VBox card = createGenericCard(link.getTitle(), link.getDescription(), link.getImageUrl(), false);
+
+        // Styling tweak to distinguish Links from Books (e.g., Cyan Border)
+        card.setStyle(card.getStyle() + "-fx-border-color: #00ffff; -fx-border-width: 0 0 2 0;");
+        return card;
+    }
+
+    // Helper to reduce code duplication between Books and Links
+    private VBox createGenericCard(String titleText, String subText, String imgUrl, boolean isPortrait) {
         VBox card = new VBox(5);
         card.setAlignment(Pos.CENTER);
         card.setStyle("-fx-background-color: #333; -fx-padding: 10; -fx-background-radius: 5; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.5), 5, 0, 0, 0);");
         card.setPrefSize(150, 220);
 
         ImageView imageView = new ImageView();
-        imageView.setFitHeight(150);
-        imageView.setFitWidth(100);
+        if (isPortrait) {
+            imageView.setFitHeight(150);
+            imageView.setFitWidth(100);
+        } else {
+            // Website previews are usually landscape (16:9)
+            imageView.setFitHeight(85);
+            imageView.setFitWidth(140);
+        }
         imageView.setPreserveRatio(true);
 
-        // Async loading for image to avoid UI freeze
-        if (book.getImageUrl() != null && !book.getImageUrl().isEmpty()) {
-            Image img = new Image(book.getImageUrl(), true); // true = background loading
-            imageView.setImage(img);
+        if (imgUrl != null && !imgUrl.isEmpty()) {
+            try {
+                Image img = ImageCache.get(imgUrl);
+                imageView.setImage(img);
+            } catch (Exception ignored) { }
         }
 
-        Label title = new Label(book.getTitle());
+        Label title = new Label(titleText);
         title.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 12;");
         title.setWrapText(true);
         title.setMaxWidth(130);
+        title.setMaxHeight(40); // Limit height
 
-        Label isbn = new Label(book.getIsbn());
-        isbn.setStyle("-fx-text-fill: #aaa; -fx-font-size: 10;");
+        Label subtitle = new Label(subText);
+        subtitle.setStyle("-fx-text-fill: #aaa; -fx-font-size: 10;");
+        subtitle.setWrapText(true);
+        subtitle.setMaxWidth(130);
+        subtitle.setMaxHeight(30);
 
-        card.getChildren().addAll(imageView, title, isbn);
+        card.getChildren().addAll(imageView, title, subtitle);
         return card;
     }
 }

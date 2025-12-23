@@ -13,6 +13,8 @@ public class DatabaseManager implements ConnectionFactory {
     private static final String DB_URL = "jdbc:sqlite:nodepad.db";
 
     public DatabaseManager() {
+        System.out.println(">>> ACTIVE DATABASE PATH: " + new java.io.File("nodepad.db").getAbsolutePath());
+
         // Load Driver
         try {
             Class.forName("org.sqlite.JDBC");

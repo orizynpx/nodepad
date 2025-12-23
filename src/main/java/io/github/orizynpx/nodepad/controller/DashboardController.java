@@ -84,4 +84,8 @@ public class DashboardController {
             mainController.openWorkshop(file);
         }
     }
+
+    public void refresh() {
+        loadRecents(); // Re-runs the DB query
+    }
 }

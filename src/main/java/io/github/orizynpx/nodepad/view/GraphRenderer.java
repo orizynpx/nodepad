@@ -38,7 +38,9 @@ public class GraphRenderer extends Pane {
 
     private Consumer<String> onStatusToggle;
     private VBox activeOverlay;
+
     private double lastMouseX, lastMouseY;
+    private boolean isDragging = false;
     private final Group contentGroup = new Group();
 
     public GraphRenderer() {
@@ -47,6 +49,12 @@ public class GraphRenderer extends Pane {
         setStyle("-fx-background-color: transparent;");
         setCursor(Cursor.MOVE);
         enablePanning();
+
+        this.setOnMouseClicked(e -> {
+            if (!isDragging && e.getTarget() == this) {
+                closeOverlay();
+            }
+        });
     }
 
     public void setOnStatusToggle(Consumer<String> onStatusToggle) {
@@ -57,7 +65,9 @@ public class GraphRenderer extends Pane {
         contentGroup.getChildren().clear();
         activeOverlay = null;
 
-        if (graph.getNodes().isEmpty()) return;
+        if (graph.getNodes().isEmpty()) {
+            return;
+        }
 
         // 1. DATA PREP
         Map<String, TaskNode> nodeData = new HashMap<>();
@@ -146,12 +156,18 @@ public class GraphRenderer extends Pane {
 
         // Nodes
         for (TaskNode node : graph.getNodes()) {
-            if (!positions.containsKey(node.getId())) continue;
+            if (!positions.containsKey(node.getId())) {
+                continue;
+            }
             Point2D pos = positions.get(node.getId());
             double x = pos.getX();
             double y = pos.getY();
 
             Circle c = new Circle(x, y, NODE_RADIUS);
+
+            // 2. SET CURSOR FOR NODES
+            c.setCursor(Cursor.HAND);
+
             // Polymorphic Color Call
             String color = node.getDisplayColor();
             c.setFill(Color.web(color));
@@ -191,7 +207,9 @@ public class GraphRenderer extends Pane {
                                        Map<String, Point2D> positions,
                                        Map<String, List<String>> childrenMap,
                                        Map<String, Double> nodeWidths) {
-        if (positions.containsKey(nodeId)) return;
+        if (positions.containsKey(nodeId)) {
+            return;
+        }
         List<String> children = childrenMap.get(nodeId);
         double y = TOP_PADDING + (depth * VERTICAL_SPACING);
         double myWidth = nodeWidths.get(nodeId);
@@ -256,14 +274,13 @@ public class GraphRenderer extends Pane {
 
     private void enablePanning() {
         this.setOnMousePressed(event -> {
-            if (activeOverlay != null) {
-                contentGroup.getChildren().remove(activeOverlay);
-                activeOverlay = null;
-            }
             lastMouseX = event.getSceneX();
             lastMouseY = event.getSceneY();
+            isDragging = false;
         });
         this.setOnMouseDragged(event -> {
+            isDragging = true;
+
             double deltaX = event.getSceneX() - lastMouseX;
             double deltaY = event.getSceneY() - lastMouseY;
             contentGroup.setTranslateX(contentGroup.getTranslateX() + deltaX);
@@ -281,6 +298,8 @@ public class GraphRenderer extends Pane {
         overlay.setStyle("-fx-background-color: rgba(30, 30, 30, 0.98); -fx-border-color: #00ffff; -fx-border-radius: 8; -fx-background-radius: 8; -fx-effect: dropshadow(three-pass-box, black, 10, 0, 0, 0);");
         overlay.setMinWidth(220);
         overlay.setMaxWidth(300);
+
+        overlay.setCursor(Cursor.DEFAULT);
 
         Label title = new Label(node.getLabel());
         title.setStyle("-fx-text-fill: #00ffff; -fx-font-weight: bold; -fx-font-size: 14px;");
@@ -412,7 +431,8 @@ public class GraphRenderer extends Pane {
                 img.setFitWidth(200);
                 img.setPreserveRatio(true);
                 embed.getChildren().add(img);
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
         }
         return embed;
     }

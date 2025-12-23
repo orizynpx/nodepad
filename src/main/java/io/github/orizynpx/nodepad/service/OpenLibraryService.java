@@ -9,6 +9,9 @@ import okhttp3.Request;
 import okhttp3.Response;
 
 import java.io.IOException;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 public class OpenLibraryService {
@@ -16,23 +19,37 @@ public class OpenLibraryService {
     private final BookRepository bookRepository;
     private final OkHttpClient client = new OkHttpClient();
 
+    // PREVENT DUPLICATES: Keep track of what we are currently fetching
+    private final Set<String> pendingRequests = Collections.synchronizedSet(new HashSet<>());
+
     public OpenLibraryService(BookRepository bookRepository) {
         this.bookRepository = bookRepository;
     }
 
-    public CompletableFuture<BookMetadata> fetchBookInfo(String isbn) {
+    public CompletableFuture<BookMetadata> fetchBookInfo(String rawIsbn) {
+        // 1. SANITIZE: Remove dashes to ensure consistent DB keys
+        String isbn = rawIsbn.replaceAll("[^0-9]", "");
+
+        if (isbn.isEmpty()) return CompletableFuture.completedFuture(null);
+
         return CompletableFuture.supplyAsync(() -> {
-            // 1. Check Cache
+            // 2. CHECK DB CACHE
             var cached = bookRepository.findByIsbn(isbn);
             if (cached.isPresent()) {
-                System.out.println("Cache Hit: " + isbn);
                 return cached.get();
             }
 
-            // 2. Fetch from API
+            // 3. CHECK IN-FLIGHT REQUESTS
+            // If we are already fetching this ISBN, don't start a new request.
+            if (pendingRequests.contains(isbn)) {
+                return null; // Or return a dummy "loading" object
+            }
+            pendingRequests.add(isbn);
+
             System.out.println("Cache Miss. Fetching API: " + isbn);
+
             try {
-                // OpenLibrary API format: https://openlibrary.org/api/books?bibkeys=ISBN:9780134685991&jscmd=data&format=json
+                // 4. FETCH API
                 String url = "https://openlibrary.org/api/books?bibkeys=ISBN:" + isbn + "&jscmd=data&format=json";
                 Request request = new Request.Builder().url(url).build();
 
@@ -46,25 +63,29 @@ public class OpenLibraryService {
                     if (json.has(key)) {
                         JsonObject bookData = json.getAsJsonObject(key);
                         String title = bookData.has("title") ? bookData.get("title").getAsString() : "Unknown Title";
-                        String desc = "No description available."; // Description parsing can be complex in OL, keeping it simple
 
-                        // Cover Image
                         String imageUrl = "";
                         if (bookData.has("cover")) {
                             imageUrl = bookData.getAsJsonObject("cover").get("medium").getAsString();
                         }
 
-                        BookMetadata metadata = new BookMetadata(isbn, title, desc, imageUrl);
-
-                        // 3. Save to Cache
+                        // 5. SAVE TO DB (Use the SANITIZED isbn)
+                        BookMetadata metadata = new BookMetadata(isbn, title, "No description", imageUrl);
                         bookRepository.save(metadata);
+
+                        System.out.println(">>> SAVED TO DB: " + title);
                         return metadata;
+                    } else {
+                        System.err.println("API returned success but JSON was missing key: " + key);
                     }
                 }
             } catch (IOException e) {
                 e.printStackTrace();
+            } finally {
+                // Remove from pending set regardless of success/failure
+                pendingRequests.remove(isbn);
             }
-            return null; // Failed
+            return null;
         });
     }
 }
