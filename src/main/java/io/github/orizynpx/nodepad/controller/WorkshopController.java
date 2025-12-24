@@ -168,4 +168,13 @@ public class WorkshopController {
             codeArea.replaceText(newText);
         }
     }
+
+    public void clearEditor() {
+        Platform.runLater(() -> {
+            if (codeArea != null) {
+                codeArea.replaceText("");
+                updateGraph("");
+            }
+        });
+    }
 }

@@ -1,8 +1,7 @@
 CREATE TABLE IF NOT EXISTS recent_files
 (
     file_path TEXT PRIMARY KEY,
-    last_opened INTEGER,
-    is_pinned INTEGER DEFAULT 0
+    last_opened INTEGER
 );
 
 CREATE TABLE IF NOT EXISTS api_cache

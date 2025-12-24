@@ -27,12 +27,12 @@ public class InventoryController {
 
     private final BookRepository bookRepository;
     private final LinkRepository linkRepository;
-    private final SharedProjectModel projectModel;
+    private final SharedProjectModel sharedModel;
 
-    public InventoryController(BookRepository bookRepo, LinkRepository linkRepo, SharedProjectModel projectModel) {
+    public InventoryController(BookRepository bookRepo, LinkRepository linkRepo, SharedProjectModel sharedModel) {
         this.bookRepository = bookRepo;
         this.linkRepository = linkRepo;
-        this.projectModel = projectModel;
+        this.sharedModel = sharedModel;
     }
 
     @FXML
@@ -40,8 +40,8 @@ public class InventoryController {
         scrollPane.setFitToWidth(true);
         tilePane.setPrefColumns(3);
 
-        projectModel.getActiveIsbns().addListener((SetChangeListener<String>) change -> refresh());
-        projectModel.getActiveUrls().addListener((SetChangeListener<String>) change -> refresh());
+        sharedModel.getActiveIsbns().addListener((SetChangeListener<String>) change -> refresh());
+        sharedModel.getActiveUrls().addListener((SetChangeListener<String>) change -> refresh());
 
         refresh();
     }
@@ -49,26 +49,22 @@ public class InventoryController {
     private void refresh() {
         tilePane.getChildren().clear();
 
-        if (projectModel.getActiveIsbns().isEmpty() && projectModel.getActiveUrls().isEmpty()) {
+        if (sharedModel.getActiveIsbns().isEmpty() && sharedModel.getActiveUrls().isEmpty()) {
             Label emptyLabel = new Label("Inventory Empty.\nAdd @isbn(..) or @url(..) to your nodes.");
             emptyLabel.getStyleClass().add("inventory-empty-label");
             tilePane.getChildren().add(emptyLabel);
             return;
         }
 
-        for (String rawIsbn : projectModel.getActiveIsbns()) {
+        for (String rawIsbn : sharedModel.getActiveIsbns()) {
             String cleanIsbn = rawIsbn.replaceAll("[^0-9]", "");
             Optional<BookMetadata> bookOpt = bookRepository.findByIsbn(cleanIsbn);
-            if (bookOpt.isPresent()) {
-                tilePane.getChildren().add(createBookCard(bookOpt.get()));
-            }
+            bookOpt.ifPresent(bookMetadata -> tilePane.getChildren().add(createBookCard(bookMetadata)));
         }
 
-        for (String url : projectModel.getActiveUrls()) {
+        for (String url : sharedModel.getActiveUrls()) {
             Optional<LinkMetadata> linkOpt = linkRepository.findByUrl(url);
-            if (linkOpt.isPresent()) {
-                tilePane.getChildren().add(createLinkCard(linkOpt.get()));
-            }
+            linkOpt.ifPresent(linkMetadata -> tilePane.getChildren().add(createLinkCard(linkMetadata)));
         }
     }
 

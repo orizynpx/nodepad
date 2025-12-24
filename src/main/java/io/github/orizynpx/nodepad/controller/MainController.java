@@ -95,6 +95,7 @@ public class MainController {
                 // If it's a new project
                 // We must explicitly reset the content, otherwise the old text remains
                 workshopController.setCurrentFile(null);
+                workshopController.clearEditor();
             }
 
             contentArea.getChildren().setAll(workshopView);

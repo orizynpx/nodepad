@@ -3,12 +3,10 @@ package io.github.orizynpx.nodepad.model.entity;
 public class FileRecord {
     private String filePath;
     private long lastOpened; // Unix timestamp
-    private boolean isPinned;
 
-    public FileRecord(String filePath, long lastOpened, boolean isPinned) {
+    public FileRecord(String filePath, long lastOpened) {
         this.filePath = filePath;
         this.lastOpened = lastOpened;
-        this.isPinned = isPinned;
     }
 
     public String getFilePath() {
@@ -17,9 +15,5 @@ public class FileRecord {
 
     public long getLastOpened() {
         return lastOpened;
-    }
-
-    public boolean isPinned() {
-        return isPinned;
     }
 }

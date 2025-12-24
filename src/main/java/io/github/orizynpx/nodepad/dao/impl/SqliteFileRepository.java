@@ -17,12 +17,11 @@ public class SqliteFileRepository implements FileRepository {
 
     @Override
     public void addOrUpdateFile(String filePath) {
-        String sql = "INSERT OR REPLACE INTO recent_files(file_path, last_opened, is_pinned) VALUES(?, ?, COALESCE((SELECT is_pinned FROM recent_files WHERE file_path=?), 0))";
+        String sql = "INSERT OR REPLACE INTO recent_files(file_path, last_opened) VALUES(?, ?)";
         try (Connection conn = databaseFactory.connect();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, filePath);
             pstmt.setLong(2, System.currentTimeMillis());
-            pstmt.setString(3, filePath);
             pstmt.executeUpdate();
         } catch (SQLException e) { e.printStackTrace(); }
     }
@@ -37,8 +36,7 @@ public class SqliteFileRepository implements FileRepository {
             while (rs.next()) {
                 files.add(new FileRecord(
                         rs.getString("file_path"),
-                        rs.getLong("last_opened"),
-                        rs.getBoolean("is_pinned")
+                        rs.getLong("last_opened")
                 ));
             }
         } catch (SQLException e) { e.printStackTrace(); }
